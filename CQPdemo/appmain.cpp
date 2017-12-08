@@ -7,15 +7,15 @@
 #include "stdafx.h"
 //#include "string"
 #include "cqp.h"
-#include "appmain.h" //åº”ç”¨AppIDç­‰ä¿¡æ¯ï¼Œè¯·æ­£ç¡®å¡«å†™ï¼Œå¦åˆ™é…·Qå¯èƒ½æ— æ³•åŠ è½½
+#include "appmain.h" //Ó¦ÓÃAppIDµÈÐÅÏ¢£¬ÇëÕýÈ·ÌîÐ´£¬·ñÔò¿áQ¿ÉÄÜÎÞ·¨¼ÓÔØ
 
 //using namespace std;
 
-int ac = -1; //AuthCode è°ƒç”¨é…·Qçš„æ–¹æ³•æ—¶éœ€è¦ç”¨åˆ°
+int ac = -1; //AuthCode µ÷ÓÃ¿áQµÄ·½·¨Ê±ÐèÒªÓÃµ½
 bool enabled = false;
 
 /* 
-* è¿”å›žåº”ç”¨çš„ApiVerã€Appidï¼Œæ‰“åŒ…åŽå°†ä¸ä¼šè°ƒç”¨
+* ·µ»ØÓ¦ÓÃµÄApiVer¡¢Appid£¬´ò°üºó½«²»»áµ÷ÓÃ
 */
 CQEVENT(const char*, AppInfo, 0)() {
 	return CQAPPINFO;
@@ -23,8 +23,8 @@ CQEVENT(const char*, AppInfo, 0)() {
 
 
 /* 
-* æŽ¥æ”¶åº”ç”¨AuthCodeï¼Œé…·Qè¯»å–åº”ç”¨ä¿¡æ¯åŽï¼Œå¦‚æžœæŽ¥å—è¯¥åº”ç”¨ï¼Œå°†ä¼šè°ƒç”¨è¿™ä¸ªå‡½æ•°å¹¶ä¼ é€’AuthCodeã€‚
-* ä¸è¦åœ¨æœ¬å‡½æ•°å¤„ç†å…¶ä»–ä»»ä½•ä»£ç ï¼Œä»¥å…å‘ç”Ÿå¼‚å¸¸æƒ…å†µã€‚å¦‚éœ€æ‰§è¡Œåˆå§‹åŒ–ä»£ç è¯·åœ¨Startupäº‹ä»¶ä¸­æ‰§è¡Œï¼ˆType=1001ï¼‰ã€‚
+* ½ÓÊÕÓ¦ÓÃAuthCode£¬¿áQ¶ÁÈ¡Ó¦ÓÃÐÅÏ¢ºó£¬Èç¹û½ÓÊÜ¸ÃÓ¦ÓÃ£¬½«»áµ÷ÓÃÕâ¸öº¯Êý²¢´«µÝAuthCode¡£
+* ²»ÒªÔÚ±¾º¯Êý´¦ÀíÆäËûÈÎºÎ´úÂë£¬ÒÔÃâ·¢ÉúÒì³£Çé¿ö¡£ÈçÐèÖ´ÐÐ³õÊ¼»¯´úÂëÇëÔÚStartupÊÂ¼þÖÐÖ´ÐÐ£¨Type=1001£©¡£
 */
 CQEVENT(INT32, Initialize, 4)(INT32 AuthCode) {
 	ac = AuthCode;
@@ -33,9 +33,9 @@ CQEVENT(INT32, Initialize, 4)(INT32 AuthCode) {
 
 
 /*
-* Type=1001 é…·Qå¯åŠ¨
-* æ— è®ºæœ¬åº”ç”¨æ˜¯å¦è¢«å¯ç”¨ï¼Œæœ¬å‡½æ•°éƒ½ä¼šåœ¨é…·Qå¯åŠ¨åŽæ‰§è¡Œä¸€æ¬¡ï¼Œè¯·åœ¨è¿™é‡Œæ‰§è¡Œåº”ç”¨åˆå§‹åŒ–ä»£ç ã€‚
-* å¦‚éžå¿…è¦ï¼Œä¸å»ºè®®åœ¨è¿™é‡ŒåŠ è½½çª—å£ã€‚ï¼ˆå¯ä»¥æ·»åŠ èœå•ï¼Œè®©ç”¨æˆ·æ‰‹åŠ¨æ‰“å¼€çª—å£ï¼‰
+* Type=1001 ¿áQÆô¶¯
+* ÎÞÂÛ±¾Ó¦ÓÃÊÇ·ñ±»ÆôÓÃ£¬±¾º¯Êý¶¼»áÔÚ¿áQÆô¶¯ºóÖ´ÐÐÒ»´Î£¬ÇëÔÚÕâÀïÖ´ÐÐÓ¦ÓÃ³õÊ¼»¯´úÂë¡£
+* Èç·Ç±ØÒª£¬²»½¨ÒéÔÚÕâÀï¼ÓÔØ´°¿Ú¡££¨¿ÉÒÔÌí¼Ó²Ëµ¥£¬ÈÃÓÃ»§ÊÖ¶¯´ò¿ª´°¿Ú£©
 */
 CQEVENT(INT32, __eventStartup, 0)() {
 
@@ -44,9 +44,9 @@ CQEVENT(INT32, __eventStartup, 0)() {
 
 
 /*
-* Type=1002 é…·Qé€€å‡º
-* æ— è®ºæœ¬åº”ç”¨æ˜¯å¦è¢«å¯ç”¨ï¼Œæœ¬å‡½æ•°éƒ½ä¼šåœ¨é…·Qé€€å‡ºå‰æ‰§è¡Œä¸€æ¬¡ï¼Œè¯·åœ¨è¿™é‡Œæ‰§è¡Œæ’ä»¶å…³é—­ä»£ç ã€‚
-* æœ¬å‡½æ•°è°ƒç”¨å®Œæ¯•åŽï¼Œé…·Qå°†å¾ˆå¿«å…³é—­ï¼Œè¯·ä¸è¦å†é€šè¿‡çº¿ç¨‹ç­‰æ–¹å¼æ‰§è¡Œå…¶ä»–ä»£ç ã€‚
+* Type=1002 ¿áQÍË³ö
+* ÎÞÂÛ±¾Ó¦ÓÃÊÇ·ñ±»ÆôÓÃ£¬±¾º¯Êý¶¼»áÔÚ¿áQÍË³öÇ°Ö´ÐÐÒ»´Î£¬ÇëÔÚÕâÀïÖ´ÐÐ²å¼þ¹Ø±Õ´úÂë¡£
+* ±¾º¯Êýµ÷ÓÃÍê±Ïºó£¬¿áQ½«ºÜ¿ì¹Ø±Õ£¬Çë²»ÒªÔÙÍ¨¹ýÏß³ÌµÈ·½Ê½Ö´ÐÐÆäËû´úÂë¡£
 */
 CQEVENT(INT32, __eventExit, 0)() {
 
@@ -54,10 +54,10 @@ CQEVENT(INT32, __eventExit, 0)() {
 }
 
 /*
-* Type=1003 åº”ç”¨å·²è¢«å¯ç”¨
-* å½“åº”ç”¨è¢«å¯ç”¨åŽï¼Œå°†æ”¶åˆ°æ­¤äº‹ä»¶ã€‚
-* å¦‚æžœé…·Qè½½å…¥æ—¶åº”ç”¨å·²è¢«å¯ç”¨ï¼Œåˆ™åœ¨_eventStartup(Type=1001,é…·Qå¯åŠ¨)è¢«è°ƒç”¨åŽï¼Œæœ¬å‡½æ•°ä¹Ÿå°†è¢«è°ƒç”¨ä¸€æ¬¡ã€‚
-* å¦‚éžå¿…è¦ï¼Œä¸å»ºè®®åœ¨è¿™é‡ŒåŠ è½½çª—å£ã€‚ï¼ˆå¯ä»¥æ·»åŠ èœå•ï¼Œè®©ç”¨æˆ·æ‰‹åŠ¨æ‰“å¼€çª—å£ï¼‰
+* Type=1003 Ó¦ÓÃÒÑ±»ÆôÓÃ
+* µ±Ó¦ÓÃ±»ÆôÓÃºó£¬½«ÊÕµ½´ËÊÂ¼þ¡£
+* Èç¹û¿áQÔØÈëÊ±Ó¦ÓÃÒÑ±»ÆôÓÃ£¬ÔòÔÚ_eventStartup(Type=1001,¿áQÆô¶¯)±»µ÷ÓÃºó£¬±¾º¯ÊýÒ²½«±»µ÷ÓÃÒ»´Î¡£
+* Èç·Ç±ØÒª£¬²»½¨ÒéÔÚÕâÀï¼ÓÔØ´°¿Ú¡££¨¿ÉÒÔÌí¼Ó²Ëµ¥£¬ÈÃÓÃ»§ÊÖ¶¯´ò¿ª´°¿Ú£©
 */
 CQEVENT(INT32, __eventEnable, 0)() {
 	enabled = true;
@@ -66,10 +66,10 @@ CQEVENT(INT32, __eventEnable, 0)() {
 
 
 /*
-* Type=1004 åº”ç”¨å°†è¢«åœç”¨
-* å½“åº”ç”¨è¢«åœç”¨å‰ï¼Œå°†æ”¶åˆ°æ­¤äº‹ä»¶ã€‚
-* å¦‚æžœé…·Qè½½å…¥æ—¶åº”ç”¨å·²è¢«åœç”¨ï¼Œåˆ™æœ¬å‡½æ•°*ä¸ä¼š*è¢«è°ƒç”¨ã€‚
-* æ— è®ºæœ¬åº”ç”¨æ˜¯å¦è¢«å¯ç”¨ï¼Œé…·Qå…³é—­å‰æœ¬å‡½æ•°éƒ½*ä¸ä¼š*è¢«è°ƒç”¨ã€‚
+* Type=1004 Ó¦ÓÃ½«±»Í£ÓÃ
+* µ±Ó¦ÓÃ±»Í£ÓÃÇ°£¬½«ÊÕµ½´ËÊÂ¼þ¡£
+* Èç¹û¿áQÔØÈëÊ±Ó¦ÓÃÒÑ±»Í£ÓÃ£¬Ôò±¾º¯Êý*²»»á*±»µ÷ÓÃ¡£
+* ÎÞÂÛ±¾Ó¦ÓÃÊÇ·ñ±»ÆôÓÃ£¬¿áQ¹Ø±ÕÇ°±¾º¯Êý¶¼*²»»á*±»µ÷ÓÃ¡£
 */
 CQEVENT(INT32, __eventDisable, 0)() {
 	enabled = false;
@@ -78,96 +78,96 @@ CQEVENT(INT32, __eventDisable, 0)() {
 
 
 /*
-* Type=21 ç§èŠæ¶ˆæ¯
-* subType å­ç±»åž‹ï¼Œ11/æ¥è‡ªå¥½å‹ 1/æ¥è‡ªåœ¨çº¿çŠ¶æ€ 2/æ¥è‡ªç¾¤ 3/æ¥è‡ªè®¨è®ºç»„
+* Type=21 Ë½ÁÄÏûÏ¢
+* subType ×ÓÀàÐÍ£¬11/À´×ÔºÃÓÑ 1/À´×ÔÔÚÏß×´Ì¬ 2/À´×ÔÈº 3/À´×ÔÌÖÂÛ×é
 */
 CQEVENT(INT32, __eventPrivateMsg, 24)(INT32 subType, INT32 msgId, INT64 fromQQ, LPCSTR msg, INT32 font) {
 
-	//å¦‚æžœè¦å›žå¤æ¶ˆæ¯ï¼Œè¯·è°ƒç”¨é…·Qæ–¹æ³•å‘é€ï¼Œå¹¶ä¸”è¿™é‡Œ return EVENT_BLOCK - æˆªæ–­æœ¬æ¡æ¶ˆæ¯ï¼Œä¸å†ç»§ç»­å¤„ç†  æ³¨æ„ï¼šåº”ç”¨ä¼˜å…ˆçº§è®¾ç½®ä¸º"æœ€é«˜"(10000)æ—¶ï¼Œä¸å¾—ä½¿ç”¨æœ¬è¿”å›žå€¼
-	//å¦‚æžœä¸å›žå¤æ¶ˆæ¯ï¼Œäº¤ç”±ä¹‹åŽçš„åº”ç”¨/è¿‡æ»¤å™¨å¤„ç†ï¼Œè¿™é‡Œ return EVENT_IGNORE - å¿½ç•¥æœ¬æ¡æ¶ˆæ¯
+	//Èç¹ûÒª»Ø¸´ÏûÏ¢£¬Çëµ÷ÓÃ¿áQ·½·¨·¢ËÍ£¬²¢ÇÒÕâÀï return EVENT_BLOCK - ½Ø¶Ï±¾ÌõÏûÏ¢£¬²»ÔÙ¼ÌÐø´¦Àí  ×¢Òâ£ºÓ¦ÓÃÓÅÏÈ¼¶ÉèÖÃÎª"×î¸ß"(10000)Ê±£¬²»µÃÊ¹ÓÃ±¾·µ»ØÖµ
+	//Èç¹û²»»Ø¸´ÏûÏ¢£¬½»ÓÉÖ®ºóµÄÓ¦ÓÃ/¹ýÂËÆ÷´¦Àí£¬ÕâÀï return EVENT_IGNORE - ºöÂÔ±¾ÌõÏûÏ¢
 	return EVENT_IGNORE;
 }
 
 
 /*
-* Type=2 ç¾¤æ¶ˆæ¯
+* Type=2 ÈºÏûÏ¢
 */
 CQEVENT(INT32, __eventGroupMsg, 36)(INT32 subType, INT32 msgId, INT64 fromGroup, INT64 fromQQ, const char *fromAnonymous, const char *msg, INT32 font) {
 
-	return EVENT_IGNORE; //å…³äºŽè¿”å›žå€¼è¯´æ˜Ž, è§â€œ_eventPrivateMsgâ€å‡½æ•°
+	return EVENT_IGNORE; //¹ØÓÚ·µ»ØÖµËµÃ÷, ¼û¡°_eventPrivateMsg¡±º¯Êý
 }
 
 
 /*
-* Type=4 è®¨è®ºç»„æ¶ˆæ¯
+* Type=4 ÌÖÂÛ×éÏûÏ¢
 */
 CQEVENT(INT32, __eventDiscussMsg, 32)(INT32 subType, INT32 msgId, INT64 fromDiscuss, INT64 fromQQ, const char *msg, INT32 font) {
 
-	return EVENT_IGNORE; //å…³äºŽè¿”å›žå€¼è¯´æ˜Ž, è§â€œ_eventPrivateMsgâ€å‡½æ•°
+	return EVENT_IGNORE; //¹ØÓÚ·µ»ØÖµËµÃ÷, ¼û¡°_eventPrivateMsg¡±º¯Êý
 }
 
 
 /*
-* Type=101 ç¾¤äº‹ä»¶-ç®¡ç†å‘˜å˜åŠ¨
-* subType å­ç±»åž‹ï¼Œ1/è¢«å–æ¶ˆç®¡ç†å‘˜ 2/è¢«è®¾ç½®ç®¡ç†å‘˜
+* Type=101 ÈºÊÂ¼þ-¹ÜÀíÔ±±ä¶¯
+* subType ×ÓÀàÐÍ£¬1/±»È¡Ïû¹ÜÀíÔ± 2/±»ÉèÖÃ¹ÜÀíÔ±
 */
 CQEVENT(INT32, __eventSystem_GroupAdmin, 24)(INT32 subType, INT32 sendTime, INT64 fromGroup, INT64 beingOperateQQ) {
 
-	return EVENT_IGNORE; //å…³äºŽè¿”å›žå€¼è¯´æ˜Ž, è§â€œ_eventPrivateMsgâ€å‡½æ•°
+	return EVENT_IGNORE; //¹ØÓÚ·µ»ØÖµËµÃ÷, ¼û¡°_eventPrivateMsg¡±º¯Êý
 }
 
 
 /*
-* Type=102 ç¾¤äº‹ä»¶-ç¾¤æˆå‘˜å‡å°‘
-* subType å­ç±»åž‹ï¼Œ1/ç¾¤å‘˜ç¦»å¼€ 2/ç¾¤å‘˜è¢«è¸¢ 3/è‡ªå·±(å³ç™»å½•å·)è¢«è¸¢
-* fromQQ æ“ä½œè€…QQ(ä»…subTypeä¸º2ã€3æ—¶å­˜åœ¨)
-* beingOperateQQ è¢«æ“ä½œQQ
+* Type=102 ÈºÊÂ¼þ-Èº³ÉÔ±¼õÉÙ
+* subType ×ÓÀàÐÍ£¬1/ÈºÔ±Àë¿ª 2/ÈºÔ±±»Ìß 3/×Ô¼º(¼´µÇÂ¼ºÅ)±»Ìß
+* fromQQ ²Ù×÷ÕßQQ(½ösubTypeÎª2¡¢3Ê±´æÔÚ)
+* beingOperateQQ ±»²Ù×÷QQ
 */
 CQEVENT(INT32, __eventSystem_GroupMemberDecrease, 32)(INT32 subType, INT32 sendTime, INT64 fromGroup, INT64 fromQQ, INT64 beingOperateQQ) {
 
-	return EVENT_IGNORE; //å…³äºŽè¿”å›žå€¼è¯´æ˜Ž, è§â€œ_eventPrivateMsgâ€å‡½æ•°
+	return EVENT_IGNORE; //¹ØÓÚ·µ»ØÖµËµÃ÷, ¼û¡°_eventPrivateMsg¡±º¯Êý
 }
 
 
 /*
-* Type=103 ç¾¤äº‹ä»¶-ç¾¤æˆå‘˜å¢žåŠ 
-* subType å­ç±»åž‹ï¼Œ1/ç®¡ç†å‘˜å·²åŒæ„ 2/ç®¡ç†å‘˜é‚€è¯·
-* fromQQ æ“ä½œè€…QQ(å³ç®¡ç†å‘˜QQ)
-* beingOperateQQ è¢«æ“ä½œQQ(å³åŠ ç¾¤çš„QQ)
+* Type=103 ÈºÊÂ¼þ-Èº³ÉÔ±Ôö¼Ó
+* subType ×ÓÀàÐÍ£¬1/¹ÜÀíÔ±ÒÑÍ¬Òâ 2/¹ÜÀíÔ±ÑûÇë
+* fromQQ ²Ù×÷ÕßQQ(¼´¹ÜÀíÔ±QQ)
+* beingOperateQQ ±»²Ù×÷QQ(¼´¼ÓÈºµÄQQ)
 */
 CQEVENT(INT32, __eventSystem_GroupMemberIncrease, 32)(INT32 subType, INT32 sendTime, INT64 fromGroup, INT64 fromQQ, INT64 beingOperateQQ) {
 
-	return EVENT_IGNORE; //å…³äºŽè¿”å›žå€¼è¯´æ˜Ž, è§â€œ_eventPrivateMsgâ€å‡½æ•°
+	return EVENT_IGNORE; //¹ØÓÚ·µ»ØÖµËµÃ÷, ¼û¡°_eventPrivateMsg¡±º¯Êý
 }
 
 
 /*
-* Type=201 å¥½å‹äº‹ä»¶-å¥½å‹å·²æ·»åŠ 
+* Type=201 ºÃÓÑÊÂ¼þ-ºÃÓÑÒÑÌí¼Ó
 */
 CQEVENT(INT32, __eventFriend_Add, 16)(INT32 subType, INT32 sendTime, INT64 fromQQ) {
 
-	return EVENT_IGNORE; //å…³äºŽè¿”å›žå€¼è¯´æ˜Ž, è§â€œ_eventPrivateMsgâ€å‡½æ•°
+	return EVENT_IGNORE; //¹ØÓÚ·µ»ØÖµËµÃ÷, ¼û¡°_eventPrivateMsg¡±º¯Êý
 }
 
 
 /*
-* Type=301 è¯·æ±‚-å¥½å‹æ·»åŠ 
-* msg é™„è¨€
-* responseFlag åé¦ˆæ ‡è¯†(å¤„ç†è¯·æ±‚ç”¨)
+* Type=301 ÇëÇó-ºÃÓÑÌí¼Ó
+* msg ¸½ÑÔ
+* responseFlag ·´À¡±êÊ¶(´¦ÀíÇëÇóÓÃ)
 */
 CQEVENT(INT32, __eventRequest_AddFriend, 24)(INT32 subType, INT32 sendTime, INT64 fromQQ, const char *msg, const char *responseFlag) {
 
 	//CQ_setFriendAddRequest(ac, responseFlag, REQUEST_ALLOW, "");
 
-	return EVENT_IGNORE; //å…³äºŽè¿”å›žå€¼è¯´æ˜Ž, è§â€œ_eventPrivateMsgâ€å‡½æ•°
+	return EVENT_IGNORE; //¹ØÓÚ·µ»ØÖµËµÃ÷, ¼û¡°_eventPrivateMsg¡±º¯Êý
 }
 
 
 /*
-* Type=302 è¯·æ±‚-ç¾¤æ·»åŠ 
-* subType å­ç±»åž‹ï¼Œ1/ä»–äººç”³è¯·å…¥ç¾¤ 2/è‡ªå·±(å³ç™»å½•å·)å—é‚€å…¥ç¾¤
-* msg é™„è¨€
-* responseFlag åé¦ˆæ ‡è¯†(å¤„ç†è¯·æ±‚ç”¨)
+* Type=302 ÇëÇó-ÈºÌí¼Ó
+* subType ×ÓÀàÐÍ£¬1/ËûÈËÉêÇëÈëÈº 2/×Ô¼º(¼´µÇÂ¼ºÅ)ÊÜÑûÈëÈº
+* msg ¸½ÑÔ
+* responseFlag ·´À¡±êÊ¶(´¦ÀíÇëÇóÓÃ)
 */
 CQEVENT(INT32, __eventRequest_AddGroup, 32)(INT32 subType, INT32 sendTime, INT64 fromGroup, INT64 fromQQ, const char *msg, const char *responseFlag) {
 
@@ -177,19 +177,19 @@ CQEVENT(INT32, __eventRequest_AddGroup, 32)(INT32 subType, INT32 sendTime, INT64
 	//	CQ_setGroupAddRequestV2(ac, responseFlag, REQUEST_GROUPINVITE, REQUEST_ALLOW, "");
 	//}
 
-	return EVENT_IGNORE; //å…³äºŽè¿”å›žå€¼è¯´æ˜Ž, è§â€œ_eventPrivateMsgâ€å‡½æ•°
+	return EVENT_IGNORE; //¹ØÓÚ·µ»ØÖµËµÃ÷, ¼û¡°_eventPrivateMsg¡±º¯Êý
 }
 
 /*
-* èœå•ï¼Œå¯åœ¨ .json æ–‡ä»¶ä¸­è®¾ç½®èœå•æ•°ç›®ã€å‡½æ•°å
-* å¦‚æžœä¸ä½¿ç”¨èœå•ï¼Œè¯·åœ¨ .json åŠæ­¤å¤„åˆ é™¤æ— ç”¨èœå•
+* ²Ëµ¥£¬¿ÉÔÚ .json ÎÄ¼þÖÐÉèÖÃ²Ëµ¥ÊýÄ¿¡¢º¯ÊýÃû
+* Èç¹û²»Ê¹ÓÃ²Ëµ¥£¬ÇëÔÚ .json ¼°´Ë´¦É¾³ýÎÞÓÃ²Ëµ¥
 */
 CQEVENT(INT32, __menuA, 0)() {
-	MessageBoxA(NULL, "è¿™æ˜¯menuAï¼Œåœ¨è¿™é‡Œè½½å…¥çª—å£ï¼Œæˆ–è€…è¿›è¡Œå…¶ä»–å·¥ä½œã€‚", "" ,0);
+	MessageBoxA(NULL, "ÕâÊÇmenuA£¬ÔÚÕâÀïÔØÈë´°¿Ú£¬»òÕß½øÐÐÆäËû¹¤×÷¡£", "" ,0);
 	return 0;
 }
 
 CQEVENT(INT32, __menuB, 0)() {
-	MessageBoxA(NULL, "è¿™æ˜¯menuBï¼Œåœ¨è¿™é‡Œè½½å…¥çª—å£ï¼Œæˆ–è€…è¿›è¡Œå…¶ä»–å·¥ä½œã€‚", "" ,0);
+	MessageBoxA(NULL, "ÕâÊÇmenuB£¬ÔÚÕâÀïÔØÈë´°¿Ú£¬»òÕß½øÐÐÆäËû¹¤×÷¡£", "" ,0);
 	return 0;
 }
