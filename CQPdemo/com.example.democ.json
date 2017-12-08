@@ -15,7 +15,7 @@
             "type":21,						// 事件类型
             "name":"私聊消息处理",			// 事件名称
             "function":"_eventPrivateMsg",	// 事件对应函数
-            "priority":30000				// 事件优先级(参见 cqp.im/deveventpriority)
+            "priority":30000				// 事件优先级(参见 cq.im/deveventpriority)
         },
         {
             "id":2,
@@ -135,6 +135,9 @@
         131,  //取陌生人信息		getStrangerInfo
         140,  //置讨论组退出		setDiscussLeave
         150,  //置好友添加请求		setFriendAddRequest
-        151   //置群添加请求		setGroupAddRequest
+        151,  //置群添加请求		setGroupAddRequest
+        160,  //取群成员列表		getGroupMemberList
+        161,  //取群列表			getGroupList
+        180   //撤回消息			deleteMsg
     ]
 }

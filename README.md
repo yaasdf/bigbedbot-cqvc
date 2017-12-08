@@ -1,6 +1,8 @@
 # cqsdk-vc [![Build status](https://ci.appveyor.com/api/projects/status/b45ik9dass1rnrnj?svg=true)](https://ci.appveyor.com/project/Coxxs/cqsdk-vc)
 使用 Visual C++ 编写 酷Q V9 应用。
 
+[下载](https://github.com/CoolQ/cqsdk-vc/archive/master.zip)
+
 文件说明
 --------
 `CQPdemo.sln` - 示例项目，可以直接在此基础上编写应用
