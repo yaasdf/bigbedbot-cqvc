@@ -4,15 +4,16 @@
 * Written by Coxxs & Thanks for the help of orzFly
 */
 
-#include "stdafx.h"
-#include "string"
 #include "cqp.h"
 #include "appmain.h" //应用AppID等信息，请正确填写，否则酷Q可能无法加载
 
-using namespace std;
+#include "app/eat.h"
+#include "app/pee.h"
+#include "app/duel.h"
+#include "app/monopoly.h"
 
-int ac = -1; //AuthCode 调用酷Q的方法时需要用到
-bool enabled = false;
+using namespace std;
+int64_t QQME;
 
 
 /* 
@@ -50,7 +51,19 @@ CQEVENT(int32_t, __eventStartup, 0)() {
 * 本函数调用完毕后，酷Q将很快关闭，请不要再通过线程等方式执行其他代码。
 */
 CQEVENT(int32_t, __eventExit, 0)() {
-
+    if (enabled)
+    {
+        for (auto& [group, round] : duel::flipcoin::groupStat)
+        {
+            duel::flipcoin::roundCancel(group);
+        }
+        for (auto& [group, round] : duel::roulette::groupStat)
+        {
+            duel::roulette::roundCancel(group);
+        }
+        pee::db.transactionStop();
+        enabled = false;
+    }
 	return 0;
 }
 
@@ -62,6 +75,40 @@ CQEVENT(int32_t, __eventExit, 0)() {
 */
 CQEVENT(int32_t, __eventEnable, 0)() {
 	enabled = true;
+    QQME = CQ_getLoginQQ(ac);
+    eat::foodCreateTable();
+    eat::foodLoadListFromDb();
+    pee::peeCreateTable();
+    pee::peeLoadFromDb();
+    std::thread(timedCommit, std::ref(eat::db)).detach();
+    std::thread(timedCommit, std::ref(pee::db)).detach();
+
+    {
+        auto t = time(nullptr);
+        t -= 60 * 60 * 24; // yesterday
+        pee::daily_refresh_time = t;
+        pee::daily_refresh_tm_auto = *localtime(&t);
+    }
+
+    std::thread([&]() {
+        auto &rec = pee::daily_refresh_tm_auto;
+        using namespace std::chrono_literals;
+        while (enabled)
+        {
+            std::this_thread::sleep_for(5s);
+
+            auto t = time(nullptr);
+            std::tm tm = *localtime(&t);
+
+            // Skip if same day
+            if (tm.tm_year <= rec.tm_year && tm.tm_yday <= rec.tm_yday)
+                continue;
+
+            if (tm.tm_hour >= pee::NEW_DAY_TIME_HOUR && tm.tm_hour >= pee::NEW_DAY_TIME_MIN)
+                pee::flushDailyTimep(true);
+        }
+    }).detach();
+
 	return 0;
 }
 
@@ -73,7 +120,19 @@ CQEVENT(int32_t, __eventEnable, 0)() {
 * 无论本应用是否被启用，酷Q关闭前本函数都*不会*被调用。
 */
 CQEVENT(int32_t, __eventDisable, 0)() {
-	enabled = false;
+    if (enabled)
+    {
+        for (auto& [group, round] : duel::flipcoin::groupStat)
+        {
+            duel::flipcoin::roundCancel(group);
+        }
+        for (auto& [group, round] : duel::roulette::groupStat)
+        {
+            duel::roulette::roundCancel(group);
+        }
+        pee::db.transactionStop();
+        enabled = false;
+    }
 	return 0;
 }
 
@@ -83,6 +142,12 @@ CQEVENT(int32_t, __eventDisable, 0)() {
 * subType 子类型，11/来自好友 1/来自在线状态 2/来自群 3/来自讨论组
 */
 CQEVENT(int32_t, __eventPrivateMsg, 24)(int32_t subType, int32_t msgId, int64_t fromQQ, const char *msg, int32_t font) {
+
+    if (!strcmp(msg, "接近我"))
+    {
+        CQ_sendPrivateMsg(ac, fromQQ, pee::unsmoke(fromQQ).c_str());
+        return EVENT_BLOCK;
+    }
 
 	//如果要回复消息，请调用酷Q方法发送，并且这里 return EVENT_BLOCK - 截断本条消息，不再继续处理  注意：应用优先级设置为"最高"(10000)时，不得使用本返回值
 	//如果不回复消息，交由之后的应用/过滤器处理，这里 return EVENT_IGNORE - 忽略本条消息
@@ -95,7 +160,42 @@ CQEVENT(int32_t, __eventPrivateMsg, 24)(int32_t subType, int32_t msgId, int64_t 
 */
 CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t msgId, int64_t fromGroup, int64_t fromQQ, const char *fromAnonymous, const char *msg, int32_t font) {
 
-	return EVENT_IGNORE; //关于返回值说明, 见“_eventPrivateMsg”函数
+    // 吃什么
+    auto c = eat::msgDispatcher(msg);
+    if (c.func) CQ_sendGroupMsg(ac, fromGroup, c.func(fromGroup, fromQQ, c.args, msg).c_str());
+
+    // 开箱
+    auto d = pee::msgDispatcher(msg);
+    if (d.func) CQ_sendGroupMsg(ac, fromGroup, d.func(fromGroup, fromQQ, d.args, msg).c_str());
+
+    // 禁烟跌坑
+    auto e = pee::smokeIndicator(msg);
+    if (e.func) CQ_sendGroupMsg(ac, fromGroup, e.func(fromGroup, fromQQ, e.args, msg).c_str());
+
+    // 
+    auto f = duel::msgDispatcher(msg);
+    if (f.func) CQ_sendGroupMsg(ac, fromGroup, f.func(fromGroup, fromQQ, f.args, msg).c_str());
+
+    // fate
+    auto g = mnp::msgDispatcher(msg);
+    if (g.func) CQ_sendGroupMsg(ac, fromGroup, g.func(fromGroup, fromQQ, g.args, msg).c_str());
+
+    // update smoke status 
+    if (fromQQ != QQME && fromQQ != 10000 && fromQQ != 1000000)
+    {
+        pee::prevUser[fromGroup] = fromQQ;
+        if (pee::smokeGroups.find(fromQQ) != pee::smokeGroups.end())
+        {
+            time_t t = time(nullptr);
+            std::list<int64_t> expired;
+            for (auto& g : pee::smokeGroups[fromQQ])
+                if (t > g.second) expired.push_back(g.first);
+            for (auto& g : expired)
+                pee::smokeGroups.erase(g);
+        }
+    }
+    return (c.func || d.func || e.func || f.func || g.func) ? EVENT_BLOCK : EVENT_IGNORE;
+	//return EVENT_BLOCK; //关于返回值说明, 见“_eventPrivateMsg”函数
 }
 
 
@@ -186,11 +286,122 @@ CQEVENT(int32_t, __eventRequest_AddGroup, 32)(int32_t subType, int32_t sendTime,
 * 如果不使用菜单，请在 .json 及此处删除无用菜单
 */
 CQEVENT(int32_t, __menuA, 0)() {
-	MessageBoxA(NULL, "这是menuA，在这里载入窗口，或者进行其他工作。", "" ,0);
+    pee::flushDailyTimep();
 	return 0;
 }
 
 CQEVENT(int32_t, __menuB, 0)() {
-	MessageBoxA(NULL, "这是menuB，在这里载入窗口，或者进行其他工作。", "" ,0);
+    time_t t = time(nullptr);
+    for (auto& c : pee::smokeGroups)
+        for (auto& g : c.second)
+            if (t < g.second)
+                CQ_setGroupBan(ac, g.first, c.first, 0);
 	return 0;
+}
+
+
+//////////////////////////////////
+std::vector<std::string> msg2args(const char* msg)
+{
+    std::vector<std::string> query;
+    if (msg == nullptr) return query;
+    std::stringstream ss(msg);
+    while (ss)
+    {
+        std::string s;
+        ss >> s;
+        if (!s.empty())
+            query.push_back(s);
+    }
+    return query;
+}
+
+#define byte win_byte_override 
+#include <Windows.h>
+#undef byte
+std::string gbk2utf8(std::string gbk)
+{
+    int len = MultiByteToWideChar(CP_ACP, 0, gbk.c_str(), -1, NULL, 0);
+    wchar_t wstr[128];
+    memset(wstr, 0, sizeof(wstr));
+
+    MultiByteToWideChar(CP_ACP, 0, gbk.c_str(), -1, wstr, len);
+    len = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, NULL, 0, NULL, NULL);
+
+    char str[256];
+    memset(str, 0, sizeof(str));
+    WideCharToMultiByte(CP_UTF8, 0, wstr, -1, str, len, NULL, NULL);
+
+    return std::string(str);
+}
+
+std::string utf82gbk(std::string utf8)
+{
+    int len = MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, NULL, 0);
+    wchar_t wstr[128];
+    memset(wstr, 0, sizeof(wstr));
+
+    MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, wstr, len);
+    len = WideCharToMultiByte(CP_ACP, 0, wstr, -1, NULL, 0, NULL, NULL);
+
+    char str[256];
+    memset(str, 0, sizeof(str));
+    WideCharToMultiByte(CP_ACP, 0, wstr, -1, str, len, NULL, NULL);
+
+    return std::string(str);
+}
+
+std::string strip(std::string& s)
+{
+    int end = (int)s.length() - 1;
+    int start = 0;
+    while (start < (int)s.length() - 1 && (s[start] == ' ')) ++start;
+    while (end > start && (s[end] == ' ' || s[end] == '\n' || s[end] == '\r')) --end;
+    return s.substr(start, end + 1 - start);
+}
+
+std::string getCardFromGroupInfoV2(const char* base64_decoded)
+{
+    size_t nick_offset = 8 + 8;
+    size_t nick_len = (base64_decoded[nick_offset] << 8) + base64_decoded[nick_offset + 1];
+    size_t card_offset = nick_offset + 2 + nick_len;
+    size_t card_len = (base64_decoded[card_offset] << 8) + base64_decoded[card_offset + 1];
+    if (card_len == 0)
+        return std::string(&base64_decoded[nick_offset+2], nick_len);
+    else
+        return std::string(&base64_decoded[card_offset+2], card_len);
+}
+
+int getPermissionFromGroupInfoV2(const char* base64_decoded)
+{
+    size_t nick_offset = 8 + 8;
+    size_t nick_len = (base64_decoded[nick_offset] << 8) + base64_decoded[nick_offset + 1];
+    size_t card_offset = nick_offset + 2 + nick_len;
+    size_t card_len = (base64_decoded[card_offset] << 8) + base64_decoded[card_offset + 1];
+    size_t area_offset = card_offset + 2 + card_len + 4 + 4;
+    size_t area_len = (base64_decoded[area_offset] << 8) + base64_decoded[area_offset + 1];
+    size_t glvl_offset = area_offset + 2 + area_len + 4 + 4;
+    size_t glvl_len = (base64_decoded[glvl_offset] << 8) + base64_decoded[glvl_offset + 1];
+    size_t perm_offset = glvl_offset + 2 + glvl_len;
+    return (base64_decoded[perm_offset + 0] << (8 * 3)) +
+           (base64_decoded[perm_offset + 1] << (8 * 2)) +
+           (base64_decoded[perm_offset + 2] << (8 * 1)) +
+           (base64_decoded[perm_offset + 3]);
+}
+
+#include "cpp-base64/base64.h"
+std::string getCard(int64_t group, int64_t qq)
+{
+    std::string qqname;
+    const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, qq, FALSE);
+    if (cqinfo && strlen(cqinfo) > 0)
+    {
+        std::string decoded = base64_decode(std::string(cqinfo));
+        if (!decoded.empty())
+        {
+            qqname = getCardFromGroupInfoV2(decoded.c_str());
+        }
+    }
+    if (qqname.empty()) qqname = CQ_At(qq);
+    return qqname;
 }

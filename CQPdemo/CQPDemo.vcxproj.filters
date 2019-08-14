@@ -15,34 +15,67 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="targetver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="cqp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="appmain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="app\eat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="app\dbconn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="app\pee.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="app\duel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="app\monopoly.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cpp-base64\base64.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sqlite3\sqlite3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="app\private\qqid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="appmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="app\eat.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="app\dbconn.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="app\pee.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="app\duel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="app\monopoly.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cpp-base64\base64.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="app\private\qqid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="CQP.lib" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="com.example.democ.json" />
+    <None Include="com.yaasdf.bigbedbot.json" />
   </ItemGroup>
 </Project>

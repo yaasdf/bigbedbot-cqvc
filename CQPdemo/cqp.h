@@ -4,6 +4,7 @@
 * Written by Coxxs & Thanks for the help of orzFly
 */
 #pragma once
+#include <cstdint>
 
 #define CQAPIVER 9
 #define CQAPIVERTEXT "9"
@@ -35,6 +36,7 @@ typedef int32_t CQBOOL;
 #define CQLOG_ERROR 30          //错误 红色
 #define CQLOG_FATAL 40          //致命错误 深红
 
+inline int ac = -1; //AuthCode 调用酷Q的方法时需要用到
 
 /*
 * 发送私聊消息, 成功返回消息ID
