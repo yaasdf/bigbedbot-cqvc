@@ -8,6 +8,7 @@
 #include <iostream>
 #include <ctime>
 #include <tuple>
+#include <bitset>
 #include "dbconn.h"
 namespace pee {
 
@@ -79,6 +80,14 @@ struct pdata
     int64_t opened_box_count;
     time_t  last_draw_time;
     int64_t keys;
+
+    // flags
+    time_t  freeze_assets_expire_time;
+    bool    meteor_shield;
+    int     air_pump_count;
+    int     air_ignore_count;
+    time_t  adrenaline_expire_time;
+
 };
 inline std::map<int64_t, pdata> plist;
 void peeCreateTable();

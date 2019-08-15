@@ -2,28 +2,28 @@
 #include "cqp.h"
 #include "appmain.h"
 #include "private/qqid.h"
+#include <cmath>
 
 namespace mnp
 {
 const std::vector<event_type> EVENT_POOL{
     { 0.1,[](int64_t group, int64_t qq) { modifyKeyCount(qq, ++plist[qq].keys); return "钥匙1把"; }},
-    { 0.1,[](int64_t group, int64_t qq) { nosmoking(group, qq, 1); return "禁烟儿童套餐，烟起1分钟"; }},
     { 0.05,[](int64_t group, int64_t qq) { plist[qq].keys += 2; modifyKeyCount(qq, plist[qq].keys); return "钥匙链，获得2把钥匙"; }},
     { 0.01,[](int64_t group, int64_t qq) { plist[qq].keys += 10; modifyKeyCount(qq, plist[qq].keys); return "钥匙套装，获得10把钥匙"; }},
-    { 0.04,[](int64_t group, int64_t qq) { plist[qq].currency += 1; modifyCurrency(qq, plist[qq].currency); return "地下水，获得1个批"; }},
-    { 0.03,[](int64_t group, int64_t qq) { plist[qq].currency += 1; modifyCurrency(qq, plist[qq].currency); return "祖传地下水，但还是只获得1个批"; }},
-    { 0.03,[](int64_t group, int64_t qq) { plist[qq].currency += 1; modifyCurrency(qq, plist[qq].currency); return "崭新出厂地下水，但还是只获得1个批"; }},
-    { 0.07,[](int64_t group, int64_t qq) { plist[qq].currency += 2; modifyCurrency(qq, plist[qq].currency); return "限量版康帅博牛肉面，获得2个批"; }},
-    { 0.05,[](int64_t group, int64_t qq) { plist[qq].currency += 5; modifyCurrency(qq, plist[qq].currency); return "爪子刀玩具模型，获得5个批"; }},
-    { 0.03,[](int64_t group, int64_t qq) { plist[qq].currency += 20; modifyCurrency(qq, plist[qq].currency); return "群主贴纸，获得20个批"; }},
+    { 0.002,[](int64_t group, int64_t qq) { plist[qq].keys += 50; modifyKeyCount(qq, plist[qq].keys); return "王国之链，获得等身大接触式万能钥匙型武器一把，能敲开50个箱子"; }},
+    { 0.07,[](int64_t group, int64_t qq) { plist[qq].currency += 1; modifyCurrency(qq, plist[qq].currency); return "地下水，获得1个批"; }},
+    { 0.05,[](int64_t group, int64_t qq) { plist[qq].currency += 2; modifyCurrency(qq, plist[qq].currency); return "限量版康帅博牛肉面，获得2个批"; }},
+    { 0.03,[](int64_t group, int64_t qq) { plist[qq].currency += 5; modifyCurrency(qq, plist[qq].currency); return "爪子刀玩具模型，获得5个批"; }},
+    { 0.02,[](int64_t group, int64_t qq) { plist[qq].currency += 20; modifyCurrency(qq, plist[qq].currency); return "群主贴纸，获得20个批"; }},
     { 0.01,[](int64_t group, int64_t qq) { plist[qq].currency += 100; modifyCurrency(qq, plist[qq].currency); return "大床纪念相册，获得100个批"; }},
     { 0.06,[](int64_t group, int64_t qq) { updateStamina(qq, -1); return "再来一次券，获得1点体力"; }},
     { 0.03,[](int64_t group, int64_t qq) { updateStamina(qq, -2); return "再来一套券，获得2点体力"; }},
     { 0.01,[](int64_t group, int64_t qq) { updateStamina(qq, -4); return "原素瓶，获得4点体力"; }},
     { 0.005,[](int64_t group, int64_t qq) { updateStamina(qq, -pee::MAX_STAMINA); return "回复石，你感觉神清气爽，体力回满了"; }},
+    { 0.05,[](int64_t group, int64_t qq) { nosmoking(group, qq, 1); return "禁烟儿童套餐，烟起1分钟"; }},
     { 0.01,[](int64_t group, int64_t qq) { nosmoking(group, qq, 5); return "禁烟板烧套餐，烟起5分钟"; }},
 
-    { 0.01,[](int64_t group, int64_t qq)
+    { 0.008,[](int64_t group, int64_t qq)
     {
         auto [enough, stamina, t] = updateStamina(qq, 0);
         updateStamina(qq, stamina);
@@ -96,11 +96,25 @@ const std::vector<event_type> EVENT_POOL{
             const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, qq, FALSE);
             if (cqinfo && strlen(cqinfo) > 0)
             {
+                if (plist[qq].meteor_shield)
+                {
+                    plist[qq].meteor_shield = false;
+                    continue;
+                }
                 plist[qq].currency *= 0.9;
                 modifyCurrency(qq, plist[qq].currency);
             }
         }
         return "陨石，本群所有人的钱包都被炸飞10%";
+    }},
+
+    { 0.002,[](int64_t group, int64_t qq) -> std::string
+    {
+        int64_t cost = plist[qq].currency * 0.9;
+        plist[qq].currency -= cost;
+        modifyCurrency(qq, plist[qq].currency);
+        using namespace std::string_literals;
+        return "菠菜罚款单，你高强度菠菜被菜市场管理小组发现了，缴纳罚款"s + std::to_string(cost) + "批";
     }},
 
     { 0.002,[](int64_t group, int64_t qq)
@@ -192,6 +206,23 @@ const std::vector<event_type> EVENT_POOL{
         return "镜像药水，你的批被反过来了";
     } },
 
+    { 0.002,[](int64_t group, int64_t qq)
+    {
+        std::vector<unsigned> numbers;
+        auto c = plist[qq].currency;
+        int len = 0;
+        while (c > 0)
+        {
+            ++len;
+            c /= 10;
+        }
+        int64_t p = plist[qq].currency;
+        p = p % 10 * int64_t(std::pow(10.0, len - 1)) + p / 10;
+        plist[qq].currency = p;
+        modifyCurrency(qq, plist[qq].currency);
+        return "堆栈药水，你的批最后一位数字变成了第一位";
+    } },
+
 
     { 0.002,[](int64_t group, int64_t qq) -> std::string
     {
@@ -229,6 +260,22 @@ const std::vector<event_type> EVENT_POOL{
         return "大风吹来本群的一堆批，自己查余额看捡到多少哦";
     } },
 
+    { 0.05,[](int64_t group, int64_t qq) -> std::string
+    {
+        std::vector<int64_t> grouplist;
+        for (auto& [qq, pd] : plist)
+        {
+            const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, qq, FALSE);
+            if (cqinfo && strlen(cqinfo) > 0)
+                grouplist.push_back(qq);
+        }
+        size_t idx = randInt(0, grouplist.size() - 1);
+        int64_t target = grouplist[idx];
+        nosmoking(group, target, 1);
+        using namespace std::string_literals;
+        return "禁烟洲际导弹，"s + CQ_At(target) + "不幸被烟1分钟";
+    } },
+
     { 0.01,[](int64_t group, int64_t qq) -> std::string
     {
         const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, qqid_dk, FALSE);
@@ -246,7 +293,45 @@ const std::vector<event_type> EVENT_POOL{
     { 0.01,[](int64_t group, int64_t qq) { return "机械鼠标球一个，但是没有什么用"; }},
     { 0.01,[](int64_t group, int64_t qq) { return "巨大回车键一个，但是没有什么用"; }},
     { 0.01,[](int64_t group, int64_t qq) { return "一团稀有气体，但是没有什么用"; } },
+    { 0.01,[](int64_t group, int64_t qq) { return EMOJI_HORN + "，傻逼"; } },
     { 0.01,[](int64_t group, int64_t qq) { return EMOJI_HAMMER + "，你抽个" + EMOJI_HAMMER; } },
+
+    { 0.002,[](int64_t group, int64_t qq) -> std::string
+    {
+        plist[qq].meteor_shield = true;
+        return "陨石防护罩充能胶囊，免疫下一次陨石伤害";
+    } },
+
+    { 0.003,[](int64_t group, int64_t qq) -> std::string
+    {
+        plist[qq].air_pump_count = 10;
+        return "高级气泵，10次抽卡内必出空气";
+    } },
+
+    { 0.005,[](int64_t group, int64_t qq) -> std::string
+    {
+        plist[qq].air_ignore_count = 10;
+        return "真空抽气机，10次抽卡内不出空气";
+    } },
+
+    { 0.005,[](int64_t group, int64_t qq) -> std::string
+    {
+        time_t t = time(nullptr);
+        for (auto& c : pee::smokeGroups)
+            for (auto& g : c.second)
+                if (t < g.second)
+                    CQ_setGroupBan(ac, g.first, c.first, 0);
+        return "大暴雨，所有人的烟都被浇灭了";
+    } },
+
+    { 0.001,[](int64_t group, int64_t qq) -> std::string
+    {
+        time_t t = time(nullptr);
+        plist[qq].adrenaline_expire_time = t + 15;
+        return "肾上腺素，接下来15秒内抽卡不消耗体力";
+    } },
+
+
 };
 const event_type EVENT_DEFAULT{ 1.0, [](int64_t group, int64_t qq) { return "空气，什么都么得"; } };
 
@@ -268,16 +353,43 @@ command msgDispatcher(const char* msg)
         {
             if (plist.find(qq) == plist.end()) return std::string(CQ_At(qq)) + "，你还没有开通菠菜";
 
-            auto [enough, stamina, rtime] = updateStamina(qq, 1);
-
             std::stringstream ss;
-            if (!enough) ss << CQ_At(qq) << "，你的体力不足，回满还需"
-                << rtime / (60 * 60) << "小时" << rtime / 60 % 60 << "分钟";
+            time_t t = time(nullptr);
+            if (t > plist[qq].adrenaline_expire_time)
+            {
+                auto [enough, stamina, rtime] = updateStamina(qq, 1);
+
+                if (!enough)
+                {
+                    ss << CQ_At(qq) << "，你的体力不足，回满还需"
+                        << rtime / (60 * 60) << "小时" << rtime / 60 % 60 << "分钟";
+                    return ss.str();
+                }
+                // fall through if stamina is enough
+            }
             else
             {
-                auto reward = draw_event(randReal());
-                ss << CQ_At(qq) << "，恭喜你抽到了" << reward.func()(group, qq);
+                ss << "肾上腺素生效！";
             }
+
+            event_type reward = EVENT_DEFAULT;
+            if (plist[qq].air_pump_count)
+            {
+                --plist[qq].air_pump_count;
+                reward = EVENT_DEFAULT;
+            }
+            else
+            {
+                reward = draw_event(randReal());
+                if (reward == EVENT_DEFAULT && plist[qq].air_ignore_count)
+                {
+                    --plist[qq].air_ignore_count;
+                    do {
+                        reward = draw_event(randReal());
+                    } while (reward == EVENT_DEFAULT);
+                }
+            }
+            ss << CQ_At(qq) << "，恭喜你抽到了" << reward.func()(group, qq);
             return ss.str();
         };
         break;

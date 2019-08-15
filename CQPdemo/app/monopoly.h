@@ -40,6 +40,14 @@ public:
     event_type(double p, evt_callback f) : _prob(p), _func(f) {}
     double prob() const { return _prob; }
     evt_callback func() const { return _func; }
+    bool operator== (const event_type& rhs)
+    {
+        auto p1 = _func.target<std::string(*)(int64_t, int64_t)>();
+        auto p2 = rhs._func.target<std::string(*)(int64_t, int64_t)>();
+        if (p1 == nullptr && p2 == nullptr) return true;
+        if (p1 != nullptr && p2 != nullptr) return *p1 == *p2;
+        return false;
+    }
 };
 const event_type& draw_event(double p);
 

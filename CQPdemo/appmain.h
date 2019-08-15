@@ -105,3 +105,4 @@ inline const std::string EMOJI_HORSE    = "[CQ:emoji,id=128052]";
 inline const std::string EMOJI_HAMMER   = "[CQ:emoji,id=128296]";
 inline const std::string EMOJI_DOWN     = "[CQ:emoji,id=11015]";
 inline const std::string EMOJI_NONE     = "[CQ:emoji,id=127514]";
+inline const std::string EMOJI_HORN     = "[CQ:emoji,id=128227]";

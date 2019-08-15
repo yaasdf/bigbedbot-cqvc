@@ -76,6 +76,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="com.yaasdf.bigbedbot.json" />
+    <None Include="app.json" />
   </ItemGroup>
 </Project>
