@@ -260,7 +260,7 @@ const std::vector<event_type> EVENT_POOL{
         return "大风吹来本群的一堆批，自己查余额看捡到多少哦";
     } },
 
-    { 0.05,[](int64_t group, int64_t qq) -> std::string
+    { 0.005,[](int64_t group, int64_t qq) -> std::string
     {
         std::vector<int64_t> grouplist;
         for (auto& [qq, pd] : plist)
@@ -381,12 +381,12 @@ command msgDispatcher(const char* msg)
             else
             {
                 reward = draw_event(randReal());
-                if (reward == EVENT_DEFAULT && plist[qq].air_ignore_count)
+                if (reward.prob() == 1.0 && plist[qq].air_ignore_count)
                 {
                     --plist[qq].air_ignore_count;
                     do {
                         reward = draw_event(randReal());
-                    } while (reward == EVENT_DEFAULT);
+                    } while (reward.prob() == 1.0);
                 }
             }
             ss << CQ_At(qq) << "，恭喜你抽到了" << reward.func()(group, qq);
