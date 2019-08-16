@@ -110,7 +110,7 @@ const std::vector<event_type> EVENT_POOL{
 
     { 0.002,[](int64_t group, int64_t qq) -> std::string
     {
-        int64_t cost = plist[qq].currency * 0.9;
+        int64_t cost = plist[qq].currency * 0.1;
         plist[qq].currency -= cost;
         modifyCurrency(qq, plist[qq].currency);
         using namespace std::string_literals;
@@ -220,7 +220,7 @@ const std::vector<event_type> EVENT_POOL{
         p = p % 10 * int64_t(std::pow(10.0, len - 1)) + p / 10;
         plist[qq].currency = p;
         modifyCurrency(qq, plist[qq].currency);
-        return "堆栈药水，你的批最后一位数字变成了第一位";
+        return "循环药水，你的批最后一位数字变成了第一位";
     } },
 
 
@@ -324,7 +324,7 @@ const std::vector<event_type> EVENT_POOL{
         return "大暴雨，所有人的烟都被浇灭了";
     } },
 
-    { 0.001,[](int64_t group, int64_t qq) -> std::string
+    { 0.002,[](int64_t group, int64_t qq) -> std::string
     {
         time_t t = time(nullptr);
         plist[qq].adrenaline_expire_time = t + 15;
