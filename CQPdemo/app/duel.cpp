@@ -45,6 +45,8 @@ command msgDispatcher(const char* msg)
     case commands::flipcoin:
         c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw) -> std::string
         {
+            if (pee::plist.find(qq) == pee::plist.end()) return std::string(CQ_At(qq)) + "，你还没有开通菠菜";
+
             flipcoin::roundStart(group);
             if (args.size() > 2)
             {
@@ -65,6 +67,8 @@ command msgDispatcher(const char* msg)
     case commands::正:
         c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw) -> std::string
         {
+            if (pee::plist.find(qq) == pee::plist.end()) return std::string(CQ_At(qq)) + "，你还没有开通菠菜";
+
             if (args.size() > 1)
             {
                 int64_t p = 0;
@@ -84,6 +88,8 @@ command msgDispatcher(const char* msg)
     case commands::反:
         c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw) -> std::string
         {
+            if (pee::plist.find(qq) == pee::plist.end()) return std::string(CQ_At(qq)) + "，你还没有开通菠菜";
+
             if (args.size() > 1)
             {
                 int64_t p = 0;
@@ -105,6 +111,8 @@ command msgDispatcher(const char* msg)
     case commands::roulette:
         c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw) -> std::string
         {
+            if (pee::plist.find(qq) == pee::plist.end()) return std::string(CQ_At(qq)) + "，你还没有开通菠菜";
+
             roulette::roundStart(group);
             if (args.size() > 2)
             {
@@ -126,6 +134,8 @@ command msgDispatcher(const char* msg)
     case commands::摇号:
         c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw) -> std::string
         {
+            if (pee::plist.find(qq) == pee::plist.end()) return std::string(CQ_At(qq)) + "，你还没有开通菠菜";
+
             if (args.size() > 2)
             {
                 int64_t p = 0;
