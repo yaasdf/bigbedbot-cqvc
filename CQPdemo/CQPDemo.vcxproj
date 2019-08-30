@@ -94,6 +94,7 @@
     <ClInclude Include="app\dbconn.h" />
     <ClInclude Include="app\duel.h" />
     <ClInclude Include="app\eat.h" />
+    <ClInclude Include="app\help.h" />
     <ClInclude Include="app\monopoly.h" />
     <ClInclude Include="app\pee.h" />
     <ClInclude Include="app\private\qqid.h" />
@@ -106,6 +107,7 @@
     <ClCompile Include="app\dbconn.cpp" />
     <ClCompile Include="app\duel.cpp" />
     <ClCompile Include="app\eat.cpp" />
+    <ClCompile Include="app\help.cpp" />
     <ClCompile Include="app\monopoly.cpp" />
     <ClCompile Include="app\pee.cpp" />
     <ClCompile Include="app\private\qqid.cpp" />

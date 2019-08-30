@@ -11,6 +11,7 @@
 #include "app/pee.h"
 #include "app/duel.h"
 #include "app/monopoly.h"
+#include "app/help.h"
 
 using namespace std;
 int64_t QQME;
@@ -109,6 +110,10 @@ CQEVENT(int32_t, __eventEnable, 0)() {
         }
     }).detach();
 
+    std::string boot_info = help::boot_info();
+    CQ_sendGroupMsg(ac, 479733965, boot_info.c_str());
+    CQ_sendGroupMsg(ac, 391406854, boot_info.c_str());
+
 	return 0;
 }
 
@@ -154,11 +159,21 @@ CQEVENT(int32_t, __eventPrivateMsg, 24)(int32_t subType, int32_t msgId, int64_t 
 	return EVENT_IGNORE;
 }
 
+time_t banTime_me = 0;
 
 /*
 * Type=2 群消息
 */
 CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t msgId, int64_t fromGroup, int64_t fromQQ, const char *fromAnonymous, const char *msg, int32_t font) {
+    
+    if (time(NULL) <= banTime_me) return EVENT_IGNORE;
+
+    if (!strcmp(msg, "帮助"))
+    {
+        std::string help = help::help();
+        CQ_sendGroupMsg(ac, fromGroup, help.c_str());
+        return EVENT_BLOCK;
+    }
 
     // 吃什么
     auto c = eat::msgDispatcher(msg);

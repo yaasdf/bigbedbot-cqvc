@@ -45,6 +45,9 @@
     <ClInclude Include="app\private\qqid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="app\help.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -72,6 +75,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="app\private\qqid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="app\help.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
