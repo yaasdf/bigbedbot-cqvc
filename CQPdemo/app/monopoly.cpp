@@ -418,6 +418,8 @@ command msgDispatcher(const char* msg)
             {
                 --plist[qq].air_pump_count;
                 reward = EVENT_DEFAULT;
+                ss << CQ_At(qq) << "，恭喜你抽到了" << reward.func()(group, qq);
+                return ss.str();
             }
 
             // 抽气机覆盖气泵效果
