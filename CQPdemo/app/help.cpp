@@ -4,6 +4,11 @@
 namespace help
 {
     const std::vector<std::string> changelog{
+        {R"(20190902
+fix: 气泵没用
+事件调整：融合药水排除0
+增加事件：世界线震动预警
+)"},
         {R"(20190830
 增加changelog
 增加事件：电子烟

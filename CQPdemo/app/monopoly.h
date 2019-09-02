@@ -42,6 +42,7 @@ public:
     evt_callback func() const { return _func; }
 };
 const event_type& draw_event(double p);
+const event_type& draw_event_chaos();
 
 
 

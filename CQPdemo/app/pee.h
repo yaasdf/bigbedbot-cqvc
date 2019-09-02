@@ -87,6 +87,7 @@ struct pdata
     int     air_pump_count;
     int     air_ignore_count;
     time_t  adrenaline_expire_time;
+    bool    chaos;
 
 };
 inline std::map<int64_t, pdata> plist;

@@ -237,8 +237,14 @@ const std::vector<event_type> EVENT_POOL{
         {
             int tmp = c % 10;
             c /= 10;
-            numbers.push_back(tmp);
+            if (tmp != 0) numbers.push_back(tmp);
         }
+        if (numbers.empty())
+        {
+            // 0
+            return "融合药水，你的批全部变成了一样的数字";
+        }
+
         size_t size = numbers.size();
         int64_t p = 0;
         unsigned idx = randInt(0, numbers.size() - 1);
@@ -270,23 +276,6 @@ const std::vector<event_type> EVENT_POOL{
         plist[qq].currency = p;
         modifyCurrency(qq, plist[qq].currency);
         return "镜像药水，你的批被反过来了";
-    } },
-
-    { 0.002,[](int64_t group, int64_t qq)
-    {
-        std::vector<unsigned> numbers;
-        auto c = plist[qq].currency;
-        int len = 0;
-        while (c > 0)
-        {
-            ++len;
-            c /= 10;
-        }
-        int64_t p = plist[qq].currency;
-        p = p % 10 * int64_t(std::pow(10.0, len - 1)) + p / 10;
-        plist[qq].currency = p;
-        modifyCurrency(qq, plist[qq].currency);
-        return "循环药水，你的批最后一位数字变成了第一位";
     } },
 
     { 0.005,[](int64_t group, int64_t qq) -> std::string
@@ -371,6 +360,12 @@ const std::vector<event_type> EVENT_POOL{
         banTime_me = t + 60 * 5;
         return "流感病毒，bot差点被你毒死，只好休息5分钟";
     } },
+
+    { 0.005,[](int64_t group, int64_t qq) -> std::string
+    {
+        plist[qq].chaos = true;
+        return "世界线震动预警，下一次抽卡很可能会抽到奇怪的东西哦";
+    } },
 };
 const event_type EVENT_DEFAULT{ 1.0, [](int64_t group, int64_t qq) { return "空气，什么都么得"; } };
 
@@ -412,6 +407,8 @@ command msgDispatcher(const char* msg)
             }
 
             event_type reward = EVENT_DEFAULT;
+            bool chaos = plist[qq].chaos;
+            plist[qq].chaos = false;
 
             // 气泵最先生效
             if (plist[qq].air_pump_count)
@@ -427,12 +424,12 @@ command msgDispatcher(const char* msg)
             {
                 --plist[qq].air_ignore_count;
                 do {
-                    reward = draw_event(randReal());
+                    reward = chaos ? draw_event_chaos() : draw_event(randReal());
                 } while (reward.prob() == 1.0);
             }
             else // 通常抽卡
             {
-                reward = draw_event(randReal());
+                reward = chaos ? draw_event_chaos() : draw_event(randReal());
             }
             ss << CQ_At(qq) << "，恭喜你抽到了" << reward.func()(group, qq);
             return ss.str();
@@ -455,6 +452,18 @@ const event_type& draw_event(double p)
         totalp += c.prob();
     }
     return EVENT_DEFAULT;        // not match any case
+}
+
+
+const event_type& draw_event_chaos()
+{
+    int cnt = EVENT_POOL.size() - 1 + 1;  // include default
+    int evt = randInt(0, cnt);
+
+    if (evt == cnt)
+        return EVENT_DEFAULT;
+    else
+        return EVENT_POOL[evt];
 }
 
 }
