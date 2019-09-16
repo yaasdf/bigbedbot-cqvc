@@ -347,14 +347,14 @@ const std::vector<event_type> EVENT_POOL{
     } },
 
 
-    { 0.01,[](int64_t group, int64_t qq) -> std::string
+    { 0.005,[](int64_t group, int64_t qq) -> std::string
     {
         time_t t = time(nullptr);
         banTime_me = t + 60;
         return "电子烟，bot被烟起1分钟";
     } },
 
-    { 0.004,[](int64_t group, int64_t qq) -> std::string
+    { 0.001,[](int64_t group, int64_t qq) -> std::string
     {
         time_t t = time(nullptr);
         banTime_me = t + 60 * 5;

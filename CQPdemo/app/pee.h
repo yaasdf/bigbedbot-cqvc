@@ -72,6 +72,7 @@ extern std::map<std::string, int64_t> qqid_str;
 
 command msgDispatcher(const char* msg);
 std::tuple<bool, int, time_t> updateStamina(int64_t qq, int cost = 0, bool extra = false);
+std::tuple<bool, int, time_t> testStamina(int64_t qq, int cost = 0);
 ////////////////////////////////////////////////////////////////////////////////
 // p
 struct pdata

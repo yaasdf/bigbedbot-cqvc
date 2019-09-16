@@ -1,119 +1,81 @@
 #include "event_case.h"
 using namespace event_case;
 
-#include <filesystem>
-namespace fs = std::filesystem;
-
 #include <iostream>
-#include <fstream>
 #include <regex>
 #include <sstream>
 #include "cqp.h"
+#include "appmain.h"
 
+#include "pee.h"
 
-case_pool::case_pool(const std::string& p)
+case_pool pool_event(evt::types, evt::levels, evt::cases);
+case_pool pool_drop(drop::types, drop::levels, drop::cases);
+
+case_pool::case_pool(const types_t& type_b, const levels_t& level_b, const std::vector<case_detail>& cases_b):
+    types(type_b), levels(level_b)
 {
-    fs::path path(p);
-    if (!fs::exists(path) || !fs::is_regular_file(path)) return;
+    cases.resize(types.size());
+    for (auto& c : cases)
+        c.resize(levels.size());
 
-    std::ifstream ifs(path);
-    std::string buf;
-    int loadStage = 0;
-    const std::regex typeScheme{ R"(^(.*)$)" };
-    const std::regex levelScheme{ R"(^(.*),(.*)$)" };
-    const std::regex caseScheme{ R"(^(\d+),(\d+),(.*),(-?\d+)$)" };
-    while (std::getline(ifs, buf))
+    for (const auto& c : cases_b)
     {
-        switch (loadStage)
+        if (c.level < (int)types.size() && c.type < (int)types.size())
         {
-        case 0:
-        {
-            if (buf.empty())
-            {
-                loadStage = 1;
-                continue;
-            }
-
-            std::smatch matched;
-            if (std::regex_match(buf, matched, typeScheme))
-            {
-                types.emplace_back(matched[1]);
-            }
-            else
-            {
-                std::stringstream ss;
-                ss << "type parsing error: " << buf;
-                CQ_addLog(ac, CQLOG_WARNING, "event_case", ss.str().c_str());
-            }
+            cases[c.type][c.level].second.push_back(c);
         }
-        break;
-        case 1:
-        {
-            if (buf.empty())
-            {
-                loadStage = 2;
-                continue;
-            }
-
-            std::smatch matched;
-            if (std::regex_match(buf, matched, levelScheme))
-            {
-                try {
-                    levels.emplace_back(matched[1], std::stod(matched[2]));
-                }
-                catch (std::invalid_argument&) {
-                    std::stringstream ss;
-                    ss << "level(prob) parsing error: " << matched[2];
-                    CQ_addLog(ac, CQLOG_WARNING, "event_case", ss.str().c_str());
-                }
-            }
-            else
-            {
-                std::stringstream ss;
-                ss << "level parsing error: " << buf;
-                CQ_addLog(ac, CQLOG_WARNING, "event_case", ss.str().c_str());
-            }
-        }
-        break;
-        case 2:
-        {
-            std::smatch matched;
-            if (std::regex_match(buf, matched, caseScheme))
-            {
-                try {
-                    types.emplace_back(std::stoi(matched[1]), std::stoi(matched[2]), matched[3], std::stoi(matched[4]));
-                }
-                catch (std::invalid_argument& e) {
-                    std::stringstream ss;
-                    ss << "case(d) parsing error: " << e.what();
-                    CQ_addLog(ac, CQLOG_WARNING, "event_case", ss.str().c_str());
-                }
-            }
-            else
-            {
-                std::stringstream ss;
-                ss << "case parsing error: " << buf;
-                CQ_addLog(ac, CQLOG_WARNING, "event_case", ss.str().c_str());
-            }
-        }
-        break;
-        default:break;
-        };
     }
-    
-    ifs.close();
+
+    // normalize level probability
+    for (auto& type : cases)
+    {
+        unsigned level = 0;
+        double total_p = 0.0;
+
+        for (auto& [prop, case_c] : type)
+        {
+            if (!case_c.empty())
+            {
+                prop = levels[level].second;
+                total_p += prop;
+            }
+            ++level;
+        }
+
+        for (auto& [prop, c] : type)
+        {
+            prop /= total_p;
+        }
+    }
 }
 
 
 case_detail case_pool::draw(int type)
 {
+    double p = randReal();
     if (type >= 0 && type < getTypeCount())
     {
-        
+        size_t idx = 0;
+
+        if (p >= 0.0 && p <= 1.0)
+        {
+            double totalp = 0;
+            for (const auto& [prob, list] : cases[type])
+            {
+                if (p <= totalp + prob) break;
+                ++idx;
+                totalp += prob;
+            }
+            // idx = CASE_POOL.size() if not match any case
+        }
+
+        size_t detail_idx = randInt(0, cases[type][idx].second.size() - 1);
+        return cases[type][idx].second[detail_idx];
     }
     else
     {
-        return {-1, -1, "??", 0};
+        return {-1, -1, "非法箱子", -1};
     }
 }
 
@@ -127,4 +89,76 @@ std::string case_pool::caseFullName(const case_detail& c) const
 
     std::string ret = ss.str();
     return ret;
+}
+
+using pee::plist;
+using pee::testStamina;
+using pee::updateStamina;
+using pee::modifyCurrency;
+using pee::modifyKeyCount;
+using pee::modifyDrawTime;
+
+command event_case::msgDispatcher(const char* msg)
+{
+    command c;
+    auto query = msg2args(msg);
+    if (query.empty()) return c;
+
+    auto cmd = query[0];
+    if (commands_str.find(cmd) == commands_str.end()) return c;
+
+    c.args = query;
+    switch (c.c = commands_str[cmd])
+    {
+    case commands::测试:
+        c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw) -> std::string
+        {
+            if (plist.find(qq) == plist.end()) return std::string(CQ_At(qq)) + "，你还没有开通菠菜";
+
+            std::stringstream ss;
+
+            auto [enough, stamina, rtime] = testStamina(qq, 3);
+            if (!enough)
+            {
+                ss << CQ_At(qq) << "，你的体力不足，回满还需"
+                    << rtime / (60 * 60) << "小时" << rtime / 60 % 60 << "分钟";
+                return ss.str();
+            }
+
+            int type = -1;
+            try
+            {
+                if (args.size() > 1)
+                    type = std::stoi(args[1]);
+            }
+            catch (...) {}
+
+            int cost = 0;
+            if (type >= 0 && type < (int)pool_event.getTypeCount() && plist[qq].currency < pool_event.getTypeCost(type))
+            {
+                cost = pool_event.getTypeCost(type);
+                if (plist[qq].currency < cost)
+                {
+                    ss << CQ_At(qq) << "，你的余额不足，需要" << cost << "个批";
+                    return ss.str();
+                }
+            }
+
+            updateStamina(qq, 3);
+            const case_detail& reward = pool_event.draw(type);
+            if (reward.worth > 300) ss << "歪哟，" << CQ_At(qq) << "发了，开出了";
+            else ss << CQ_At(qq) << "，恭喜你开出了" << pool_event.caseFullName(reward);
+
+            plist[qq].currency += reward.worth;
+            if (plist[qq].currency < 0) plist[qq].currency = 0;
+            modifyCurrency(qq, plist[qq].currency);
+            //modifyBoxCount(qq, ++plist[qq].opened_box_count);
+            //ss << "你还有" << stamina << "点体力，";
+
+            return ss.str();
+        };
+        break;
+    default: break;
+    }
+    return c;
 }

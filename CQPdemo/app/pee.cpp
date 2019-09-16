@@ -155,6 +155,43 @@ std::tuple<bool, int, time_t> updateStamina(int64_t qq, int cost, bool extra)
     return { enough, stamina, staminaRecoveryTime[qq] - t };
 }
 
+std::tuple<bool, int, time_t> testStamina(int64_t qq, int cost)
+{
+    time_t t = time(nullptr);
+    time_t last = staminaRecoveryTime[qq];
+    int stamina = MAX_STAMINA;
+    if (last > t) stamina -= (last - t) / STAMINA_TIME + !!((last - t) % STAMINA_TIME);
+
+    bool enough = false;
+
+    if (cost > 0)
+    {
+        if (staminaExtra[qq] >= cost)
+        {
+            enough = true;
+        }
+        else if (stamina + staminaExtra[qq] >= cost)
+        {
+            enough = true;
+        }
+        else
+        {
+            enough = false;
+        }
+    }
+
+    if (enough)
+    {
+        if (last > t)
+            last += STAMINA_TIME * cost;
+        else
+            last = t + STAMINA_TIME * cost;
+    }
+
+    if (enough && stamina >= MAX_STAMINA) last = t;
+    return { enough, stamina, last - t };
+}
+
 command msgDispatcher(const char* msg)
 {
     command c;

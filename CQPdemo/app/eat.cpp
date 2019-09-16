@@ -3,6 +3,7 @@
 #include "eat.h"
 #include "appmain.h"
 #include "cpp-base64/base64.h"
+#include "private/qqid.h"
 #include <Windows.h>
 
 namespace eat {
@@ -197,7 +198,7 @@ command msgDispatcher(const char* msg)
     case commands::É¾¿â:
         c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw) -> std::string
         {
-            if (qq != 851143594)
+            if (qq != qqid_admin)
                 return "²»×¼É¾";
 
             if (db.exec(

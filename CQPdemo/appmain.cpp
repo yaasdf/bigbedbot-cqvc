@@ -12,6 +12,7 @@
 #include "app/duel.h"
 #include "app/monopoly.h"
 #include "app/help.h"
+#include "app/event_case.h"
 
 using namespace std;
 int64_t QQME;
@@ -195,6 +196,10 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t msgId, int64_t fr
     auto g = mnp::msgDispatcher(msg);
     if (g.func) CQ_sendGroupMsg(ac, fromGroup, g.func(fromGroup, fromQQ, g.args, msg).c_str());
 
+    // event_case
+    auto h = event_case::msgDispatcher(msg);
+    if (h.func) CQ_sendGroupMsg(ac, fromGroup, h.func(fromGroup, fromQQ, h.args, msg).c_str());
+
     // update smoke status 
     if (fromQQ != QQME && fromQQ != 10000 && fromQQ != 1000000)
     {
@@ -209,7 +214,7 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t msgId, int64_t fr
                 pee::smokeGroups.erase(g);
         }
     }
-    return (c.func || d.func || e.func || f.func || g.func) ? EVENT_BLOCK : EVENT_IGNORE;
+    return (c.func || d.func || e.func || f.func || g.func || h.func) ? EVENT_BLOCK : EVENT_IGNORE;
 	//return EVENT_BLOCK; //关于返回值说明, 见“_eventPrivateMsg”函数
 }
 
