@@ -233,10 +233,12 @@ const std::vector<event_type> EVENT_POOL{
     {
         std::vector<unsigned> numbers;
         auto c = plist[qq].currency;
+        size_t size = 0;
         while (c > 0)
         {
             int tmp = c % 10;
             c /= 10;
+            ++size;
             if (tmp != 0) numbers.push_back(tmp);
         }
         if (numbers.empty())
@@ -245,7 +247,6 @@ const std::vector<event_type> EVENT_POOL{
             return "融合药水，你的批全部变成了一样的数字";
         }
 
-        size_t size = numbers.size();
         int64_t p = 0;
         unsigned idx = randInt(0, numbers.size() - 1);
         for (size_t i = 0; i < size; ++i)
