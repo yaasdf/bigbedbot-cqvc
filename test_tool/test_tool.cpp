@@ -53,6 +53,7 @@ int main()
     std::string input;
     enum
     {
+        EXIT,
         CMD,
         PRIVATE,
         GROUP,
@@ -63,7 +64,7 @@ int main()
     eventEnable();
     coolQLoaded = true;
 
-    while (true)
+    while (procMode != EXIT)
     {
         cout << "------------------------------------------------" << endl; 
         switch (procMode)
@@ -91,6 +92,8 @@ int main()
                 procMode = PRIVATE;
             else if (input == "2")
                 procMode = GROUP;
+            else if (input == "q")
+                procMode = EXIT;
             break;
 
         case PRIVATE:

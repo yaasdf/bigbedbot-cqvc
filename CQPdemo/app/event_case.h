@@ -73,4 +73,6 @@ extern const case_pool::levels_t levels;
 extern const std::vector<case_detail> cases;
 }
 
+extern case_pool pool_event;
+extern case_pool pool_drop;
 }

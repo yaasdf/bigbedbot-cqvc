@@ -9,9 +9,6 @@ using namespace event_case;
 
 #include "pee.h"
 
-case_pool pool_event(evt::types, evt::levels, evt::cases);
-case_pool pool_drop(drop::types, drop::levels, drop::cases);
-
 case_pool::case_pool(const types_t& type_b, const levels_t& level_b, const std::vector<case_detail>& cases_b):
     types(type_b), levels(level_b)
 {

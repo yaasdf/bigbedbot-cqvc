@@ -326,4 +326,8 @@ const vector<case_detail> cases{
 { 12, 3, "Ë«³Ö±´ÈğËş | ±¬ÆÆÄÜÊÖ", 11 },
 };
 }
+
+case_pool pool_event(evt::types, evt::levels, evt::cases);
+case_pool pool_drop(drop::types, drop::levels, drop::cases);
 }
+
