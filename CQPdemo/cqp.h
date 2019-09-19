@@ -9,12 +9,19 @@
 #define CQAPIVER 9
 #define CQAPIVERTEXT "9"
 
+#ifdef _DEBUG
+#ifndef CQAPI
+#define CQAPI(ReturnType) extern "C" ReturnType __stdcall
+#endif
+#define CQEVENT(ReturnType, Name, Size) __pragma(comment(linker, "/EXPORT:" #Name "=_" #Name "@" #Size))\
+ extern "C" ReturnType __stdcall Name
+#else
 #ifndef CQAPI
 #define CQAPI(ReturnType) extern "C" __declspec(dllimport) ReturnType __stdcall
 #endif
-
 #define CQEVENT(ReturnType, Name, Size) __pragma(comment(linker, "/EXPORT:" #Name "=_" #Name "@" #Size))\
  extern "C" __declspec(dllexport) ReturnType __stdcall Name
+#endif
 
 typedef int32_t CQBOOL;
 
