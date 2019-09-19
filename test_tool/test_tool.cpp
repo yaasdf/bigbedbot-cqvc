@@ -46,7 +46,9 @@ int main()
         return 2;
     }
 
-    signal(SIGINT, signalHandler);
+    signal(SIGINT, signalHandler);      //ctrl+c
+    signal(SIGTERM, signalHandler);     //end process
+    signal(SIGBREAK, signalHandler);    //x
 
     std::string input;
     enum
