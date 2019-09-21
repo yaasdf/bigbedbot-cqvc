@@ -80,7 +80,7 @@ public:
     simple_str(int16_t len, const char* str) : _len(len)
     {
         _data = new char[_len];
-        strcpy_s(_data, _len, str);
+        memcpy_s(_data, _len, str, _len);
         _data[_len - 1] = 0;
     }
     simple_str(const char* str) : simple_str(int16_t(strlen(str)), str) {}
@@ -154,8 +154,8 @@ inline uint32_t ntohl(uint32_t netlong)
 }
 inline uint64_t ntohll(uint64_t netllong)
 {
-    return uint64_t(ntohl(uint32_t(netllong & 0xFFFFFFFF))) + 
-        uint64_t(ntohl(uint32_t((netllong >> 32) & 0xFFFFFFFF))) << 32;
+    return (uint64_t(ntohl(uint32_t(netllong & 0xFFFFFFFF))) << 32) + 
+        (uint64_t(ntohl(uint32_t((netllong >> 32) & 0xFFFFFFFF))));
 }
 
 //card: 8+8+2+?+2+?

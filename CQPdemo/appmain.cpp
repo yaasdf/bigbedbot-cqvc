@@ -426,59 +426,59 @@ GroupMemberInfo::GroupMemberInfo(const char* base64_decoded)
     size_t offset = 0;
     int16_t len = 0;
 
-    group = ntohll(*(uint64_t*)(base64_decoded[offset]));
+    group = ntohll(*(uint64_t*)(&base64_decoded[offset]));
     offset += 8;
 
-    qqid = ntohll(*(uint64_t*)(base64_decoded[offset]));
+    qqid = ntohll(*(uint64_t*)(&base64_decoded[offset]));
     offset += 8;
 
-    len = ntohs(*(uint16_t*)(base64_decoded[offset]));
+    len = ntohs(*(uint16_t*)(&base64_decoded[offset]));
     offset += 2;
-    nick = simple_str(len, &base64_decoded[offset]);
+    nick = simple_str(len + 1, &base64_decoded[offset]);
     offset += len;
 
-    len = ntohs(*(uint16_t*)(base64_decoded[offset]));
+    len = ntohs(*(uint16_t*)(&base64_decoded[offset]));
     offset += 2;
-    card = simple_str(len, &base64_decoded[offset]);
+    card = simple_str(len + 1, &base64_decoded[offset]);
     offset += len;
 
-    gender = ntohl(*(uint32_t*)(base64_decoded[offset]));
+    gender = ntohl(*(uint32_t*)(&base64_decoded[offset]));
     offset += 4;
 
-    age = ntohl(*(uint32_t*)(base64_decoded[offset]));
+    age = ntohl(*(uint32_t*)(&base64_decoded[offset]));
     offset += 4;
 
-    len = ntohs(*(uint16_t*)(base64_decoded[offset]));
+    len = ntohs(*(uint16_t*)(&base64_decoded[offset]));
     offset += 2;
-    area = simple_str(len, &base64_decoded[offset]);
+    area = simple_str(len + 1, &base64_decoded[offset]);
     offset += len;
 
-    joinTime = ntohl(*(uint32_t*)(base64_decoded[offset]));
+    joinTime = ntohl(*(uint32_t*)(&base64_decoded[offset]));
     offset += 4;
 
-    speakTime = ntohl(*(uint32_t*)(base64_decoded[offset]));
+    speakTime = ntohl(*(uint32_t*)(&base64_decoded[offset]));
     offset += 4;
 
-    len = ntohs(*(uint16_t*)(base64_decoded[offset]));
+    len = ntohs(*(uint16_t*)(&base64_decoded[offset]));
     offset += 2;
-    level = simple_str(len, &base64_decoded[offset]);
+    level = simple_str(len +1 , &base64_decoded[offset]);
     offset += len;
 
-    permission = ntohl(*(uint32_t*)(base64_decoded[offset]));
+    permission = ntohl(*(uint32_t*)(&base64_decoded[offset]));
     offset += 4;
 
-    dummy1 = ntohl(*(uint32_t*)(base64_decoded[offset]));
+    dummy1 = ntohl(*(uint32_t*)(&base64_decoded[offset]));
     offset += 4;
 
-    len = ntohs(*(uint16_t*)(base64_decoded[offset]));
+    len = ntohs(*(uint16_t*)(&base64_decoded[offset]));
     offset += 2;
-    title = simple_str(len, &base64_decoded[offset]);
+    title = simple_str(len+1, &base64_decoded[offset]);
     offset += len;
 
-    titleExpireTime = ntohl(*(uint32_t*)(base64_decoded[offset]));
+    titleExpireTime = ntohl(*(uint32_t*)(&base64_decoded[offset]));
     offset += 4;
 
-    canModifyCard = ntohl(*(uint32_t*)(base64_decoded[offset]));
+    canModifyCard = ntohl(*(uint32_t*)(&base64_decoded[offset]));
     offset += 4;
 }
 

@@ -213,7 +213,7 @@ CQAPI(int32_t) CQ_setGroupAddRequestV2(int32_t AuthCode, const char* responsefla
 */
 CQAPI(const char*) CQ_getGroupMemberInfoV2(int32_t AuthCode, int64_t groupid, int64_t QQID, CQBOOL nocache)
 {
-    return 0;
+    return "AAAAAAfytJ0AAAAAAHT/gQAGw+aw/L79AAAAAAAAAAAAHgAEy9XW3VcZheRZlDxGAATHscuuAAAAAwAAAAAAAAAAAAAAAAAB";
 }
 
 /*
