@@ -134,10 +134,28 @@ struct GroupMemberInfo
 
     GroupMemberInfo(const char* base64_decoded);
 };
-uint64_t ntohll(uint64_t netllong)
+
+#ifndef _WINSOCKAPI_
+#define _WINSOCKAPI_
+#endif
+inline uint16_t ntohs(uint16_t netshort)
 {
-    return uint64_t(ntohl(u_long(netllong & 0xFFFFFFFF))) + 
-        uint64_t(ntohl(u_long((netllong >> 32) & 0xFFFFFFFF))) << 32;
+    return
+        ((netshort & 0x00FF) << 8) +
+        ((netshort & 0xFF00) >> 8);
+}
+inline uint32_t ntohl(uint32_t netlong)
+{
+    return
+        ((netlong & 0x000000FF) << 24) +
+        ((netlong & 0x0000FF00) << 8) +
+        ((netlong & 0x00FF0000) >> 8) +
+        ((netlong & 0xFF000000) >> 24);
+}
+inline uint64_t ntohll(uint64_t netllong)
+{
+    return uint64_t(ntohl(uint32_t(netllong & 0xFFFFFFFF))) + 
+        uint64_t(ntohl(uint32_t((netllong >> 32) & 0xFFFFFFFF))) << 32;
 }
 
 //card: 8+8+2+?+2+?

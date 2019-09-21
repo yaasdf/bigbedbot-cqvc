@@ -112,6 +112,8 @@ inline std::map<int64_t, std::map<int64_t, time_t>> smokeGroups;
 const int FREE_BALANCE_ON_NEW_DAY = 10;
 const int NEW_DAY_TIME_HOUR = 11;
 const int NEW_DAY_TIME_MIN = 0;
+
+
 inline int extra_tomorrow = 0;
 
 inline time_t daily_refresh_time;   // 可领批的时间，最后领批时间戳需要小于这个时间

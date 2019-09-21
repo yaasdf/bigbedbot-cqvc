@@ -17,7 +17,6 @@
 using namespace std;
 int64_t QQME;
 
-
 /* 
 * 返回应用的ApiVer、Appid，打包后将不会调用
 */
@@ -106,14 +105,54 @@ CQEVENT(int32_t, __eventEnable, 0)() {
             if (tm.tm_year <= rec.tm_year && tm.tm_yday <= rec.tm_yday)
                 continue;
 
-            if (tm.tm_hour >= pee::NEW_DAY_TIME_HOUR && tm.tm_hour >= pee::NEW_DAY_TIME_MIN)
+            if (tm.tm_hour >= pee::NEW_DAY_TIME_HOUR &&
+                tm.tm_min >= pee::NEW_DAY_TIME_MIN)
                 pee::flushDailyTimep(true);
         }
     }).detach();
 
+    std::thread([&]() {
+        auto& rec = event_case::event_case_tm;
+        using namespace std::chrono_literals;
+        while (enabled)
+        {
+            std::this_thread::sleep_for(5s);
+
+            auto t = time(nullptr);
+            std::tm tm = *localtime(&t);
+
+            // Skip if same day
+            if (tm.tm_year <= rec.tm_year && tm.tm_yday <= rec.tm_yday)
+                continue;
+
+            if (tm.tm_hour >= event_case::EVENT_CASE_TIME_HOUR_START &&
+                tm.tm_min >= event_case::EVENT_CASE_TIME_MIN_START)
+                event_case::startEvent();
+        }
+    }).detach();
+
+    std::thread([&]() {
+        auto& rec = event_case::event_case_end_tm;
+        using namespace std::chrono_literals;
+        while (enabled)
+        {
+            std::this_thread::sleep_for(5s);
+
+            auto t = time(nullptr);
+            std::tm tm = *localtime(&t);
+
+            // Skip if same day
+            if (tm.tm_year <= rec.tm_year && tm.tm_yday <= rec.tm_yday)
+                continue;
+
+            if (tm.tm_hour >= event_case::EVENT_CASE_TIME_HOUR_END &&
+                tm.tm_min >= event_case::EVENT_CASE_TIME_MIN_END)
+                event_case::stopEvent();
+        }
+    }).detach();
+
     std::string boot_info = help::boot_info();
-    CQ_sendGroupMsg(ac, 479733965, boot_info.c_str());
-    CQ_sendGroupMsg(ac, 391406854, boot_info.c_str());
+    broadcastMsg(boot_info.c_str());
 
 	return 0;
 }

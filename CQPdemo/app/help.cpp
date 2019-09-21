@@ -4,6 +4,9 @@
 namespace help
 {
     const std::vector<std::string> changelog{
+        {R"(20190921
+Add: 活动开箱（18:00~19:00）
+)"},
         {R"(20190919
 Fix: 特殊开箱（测试，3体力+表格批一次）
 Fix: 事件[融合药水]真的排除了0

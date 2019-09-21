@@ -14,6 +14,12 @@
 #define CMD_GREEN_NORM "\e[32m"
 #define CMD_GREEN_BOLD "\e[92m"
 
+using std::cout;
+using std::endl;
+#define icout std::cout // << CMD_BOLD
+#define gcout std::cout // << CMD_GREEN_NORM
+//#define iendl CMD_DEFAULT << std::endl
+#define iendl std::endl
 
 HMODULE hDll = NULL;
 
@@ -27,10 +33,6 @@ int32_t(__stdcall* eventGroupMsg)(int32_t subType, int32_t msgId, int64_t fromGr
 bool coolQStarted = false;
 bool coolQLoaded = false;
 
-using std::cout;
-using std::endl;
-#define icout std::cout << CMD_BOLD
-#define iendl CMD_DEFAULT << std::endl
 
 void signalHandler(int signum);
 

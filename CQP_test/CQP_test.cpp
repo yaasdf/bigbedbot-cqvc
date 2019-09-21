@@ -13,9 +13,10 @@
 
 using std::cout;
 using std::endl;
-#define icout std::cout << CMD_BOLD
-#define gcout std::cout << CMD_GREEN_NORM
-#define iendl CMD_DEFAULT << std::endl
+#define icout std::cout // << CMD_BOLD
+#define gcout std::cout // << CMD_GREEN_NORM
+//#define iendl CMD_DEFAULT << std::endl
+#define iendl std::endl
 
 #define CQAPI(ReturnType) extern "C" ReturnType __stdcall 
 typedef int32_t CQBOOL;

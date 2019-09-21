@@ -79,7 +79,7 @@ case_detail case_pool::draw(int type)
 std::string case_pool::caseFullName(const case_detail& c) const
 {
     std::stringstream ss;
-    if (c.type >= 0 && c.type < getTypeCount()) ss << "[" << getType(c.type) << "] ";
+    //if (c.type >= 0 && c.type < getTypeCount()) ss << "[" << getType(c.type) << "] ";
     if (c.level >= 0 && c.level < getLevelCount()) ss << "<" << getLevel(c.level) << "> ";
     ss << c.name;
     ss << " (" << c.worth << "批)";
@@ -107,28 +107,26 @@ command event_case::msgDispatcher(const char* msg)
     c.args = query;
     switch (c.c = commands_str[cmd])
     {
-    case commands::测试:
+    case commands::开箱:
         c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw) -> std::string
         {
             if (plist.find(qq) == plist.end()) return std::string(CQ_At(qq)) + "，你还没有开通菠菜";
 
             std::stringstream ss;
 
-            auto [enough, stamina, rtime] = testStamina(qq, 3);
+            if (type < 0 || type >= pool_event.getTypeCount())
+            {
+                ss << CQ_At(qq) << "，活动尚未开始，请下次再来";
+                return ss.str();
+            }
+
+            auto [enough, stamina, rtime] = testStamina(qq, 1);
             if (!enough)
             {
                 ss << CQ_At(qq) << "，你的体力不足，回满还需"
                     << rtime / (60 * 60) << "小时" << rtime / 60 % 60 << "分钟";
                 return ss.str();
             }
-
-            int type = -1;
-            try
-            {
-                if (args.size() > 1)
-                    type = std::stoi(args[1]);
-            }
-            catch (...) {}
 
             int cost = 0;
             if (type >= 0 && type < (int)pool_event.getTypeCount() && plist[qq].currency < pool_event.getTypeCost(type))
@@ -158,4 +156,36 @@ command event_case::msgDispatcher(const char* msg)
     default: break;
     }
     return c;
+}
+
+void event_case::startEvent()
+{
+    if (type == -1)
+    {
+        type = randInt(0, pool_event.getTypeCount() - 1);
+        auto event_case_time = time(nullptr);
+        event_case_tm = *localtime(&event_case_time);
+        std::stringstream ss;
+        ss << "限时活动已开始，这次是<" << pool_event.getType(type) << ">，请群员踊跃参加！";
+        broadcastMsg(ss.str().c_str());
+    }
+    else
+    {
+        CQ_addLog(ac, CQLOG_WARNING, "event", "attempt to start event during event");
+    }
+}
+
+void event_case::stopEvent()
+{
+    if (type != -1)
+    {
+        type = -1;
+        auto event_case_time = time(nullptr);
+        event_case_end_tm = *localtime(&event_case_time);
+        broadcastMsg("限时活动已结束！");
+    }
+    else
+    {
+        CQ_addLog(ac, CQLOG_WARNING, "event", "attempt to end event during normal time");
+    }
 }

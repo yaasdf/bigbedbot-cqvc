@@ -42,7 +42,7 @@ public:
 };
 
 enum class commands : size_t {
-    测试
+    开箱
 };
 typedef std::function<std::string(::int64_t, ::int64_t, std::vector<std::string>&, const char*)> callback;
 //typedef std::string(*callback)(::int64_t, ::int64_t, std::vector<std::string>);
@@ -55,10 +55,13 @@ struct command
 
 inline std::map<std::string, commands> commands_str
 {
-    {"特殊开箱", commands::测试},
+    {"活动开箱", commands::开箱},
 };
 command msgDispatcher(const char* msg);
 
+inline int type = -1;
+void startEvent();
+void stopEvent();
 
 namespace evt
 {
@@ -75,4 +78,12 @@ extern const std::vector<case_detail> cases;
 
 extern case_pool pool_event;
 extern case_pool pool_drop;
+
+// 活动开箱
+inline std::tm event_case_tm;
+inline std::tm event_case_end_tm;
+const int EVENT_CASE_TIME_HOUR_START = 18;
+const int EVENT_CASE_TIME_MIN_START = 0;
+const int EVENT_CASE_TIME_HOUR_END = 19;
+const int EVENT_CASE_TIME_MIN_END = 0;
 }
