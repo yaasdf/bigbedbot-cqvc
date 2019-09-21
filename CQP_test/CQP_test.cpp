@@ -3,8 +3,19 @@
 
 #include "pch.h"
 #include "framework.h"
+
+#define CMD_DEFAULT "\e[0m"
+#define CMD_BOLD "\e[1m"
+#define CMD_RED_NORM "\e[31m"
+#define CMD_RED_BOLD "\e[91m"
+#define CMD_GREEN_NORM "\e[32m"
+#define CMD_GREEN_BOLD "\e[92m"
+
 using std::cout;
 using std::endl;
+#define icout std::cout << CMD_BOLD
+#define gcout std::cout << CMD_GREEN_NORM
+#define iendl CMD_DEFAULT << std::endl
 
 #define CQAPI(ReturnType) extern "C" ReturnType __stdcall 
 typedef int32_t CQBOOL;
@@ -16,7 +27,7 @@ typedef int32_t CQBOOL;
 */
 CQAPI(int32_t) CQ_sendPrivateMsg(int32_t AuthCode, int64_t QQID, const char* msg)
 {
-    cout << "To QQ " << QQID << ":" << endl;
+    icout << "To QQ " << QQID << ":" << iendl;
     cout << msg;
     cout << endl;
     return 0;
@@ -29,7 +40,7 @@ CQAPI(int32_t) CQ_sendPrivateMsg(int32_t AuthCode, int64_t QQID, const char* msg
 */
 CQAPI(int32_t) CQ_sendGroupMsg(int32_t AuthCode, int64_t groupid, const char* msg)
 {
-    cout << "To Group " << groupid << ":" << endl;
+    icout << "To Group " << groupid << ":" << iendl;
     cout << msg;
     cout << endl;
     return 0;
@@ -82,7 +93,7 @@ CQAPI(int32_t) CQ_setGroupKick(int32_t AuthCode, int64_t groupid, int64_t QQID, 
 */
 CQAPI(int32_t) CQ_setGroupBan(int32_t AuthCode, int64_t groupid, int64_t QQID, int64_t duration)
 {
-    cout << "Set Group ban: group " << groupid << ", QQ " << QQID << ", duration " << duration << "s" << endl;
+    icout << "Set Group ban: group " << groupid << ", QQ " << QQID << ", duration " << duration << "s" << iendl;
     return 0;
 }
 
@@ -222,6 +233,20 @@ CQAPI(const char*) CQ_getStrangerInfo(int32_t AuthCode, int64_t QQID, CQBOOL noc
 */
 CQAPI(int32_t) CQ_addLog(int32_t AuthCode, int32_t priority, const char* category, const char* content)
 {
+    const char* strPri = "";
+    switch (priority)
+    {
+        case 0:  strPri = "DEBUG   "; break;
+        case 10: strPri = "INFO    "; break;
+        case 11: strPri = "INFOSUCC"; break;
+        case 12: strPri = "INFORECV"; break;
+        case 13: strPri = "INFOSEND"; break;
+        case 20: strPri = "WARNING "; break;
+        case 30: strPri = "ERROR   "; break;
+        case 40: strPri = "FATAL   "; break;
+        default: break;
+    }
+    gcout << "[LOG] " << strPri << ": [" << category << "] " << content << iendl;
     return 0;
 }
 

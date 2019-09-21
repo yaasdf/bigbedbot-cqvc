@@ -7,6 +7,14 @@
 #include <Windows.h>
 #include "../CQPdemo/cqp.h"
 
+#define CMD_DEFAULT "\e[0m"
+#define CMD_BOLD "\e[1m"
+#define CMD_RED_NORM "\e[31m"
+#define CMD_RED_BOLD "\e[91m"
+#define CMD_GREEN_NORM "\e[32m"
+#define CMD_GREEN_BOLD "\e[92m"
+
+
 HMODULE hDll = NULL;
 
 int32_t(__stdcall* eventStartup)() = NULL;
@@ -21,6 +29,8 @@ bool coolQLoaded = false;
 
 using std::cout;
 using std::endl;
+#define icout std::cout << CMD_BOLD
+#define iendl CMD_DEFAULT << std::endl
 
 void signalHandler(int signum);
 
@@ -42,7 +52,7 @@ int main()
 
     if (!eventStartup || !eventExit || !eventEnable || !eventDisable || !eventPrivateMsg || !eventGroupMsg)
     {
-        cout << "Get proc error";
+        cout << "Get proc error" << endl;
         return 2;
     }
 
@@ -66,19 +76,19 @@ int main()
 
     while (procMode != EXIT)
     {
-        cout << "------------------------------------------------" << endl; 
+        icout << "------------------------------------------------" << iendl; 
         switch (procMode)
         {
         case CMD:
-            cout << "Mode: CMD (1: Private, 2: Group)" << endl;
+            icout << "Mode: CMD (1: Private, 2: Group)" << iendl;
             break;
 
         case PRIVATE:
-            cout << "Mode: PRIVATE" << endl;
+            icout << "Mode: PRIVATE" << iendl;
             break;
 
         case GROUP:
-            cout << "Mode: GROUP" << endl;
+            icout << "Mode: GROUP" << iendl;
             break;
         }
         std::getline(std::cin, input);

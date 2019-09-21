@@ -810,8 +810,7 @@ void flushDailyTimep(bool autotriggered)
     remain_daily_bonus = DAILY_BONUS + extra_tomorrow;
     extra_tomorrow = 0;
 
-    CQ_sendGroupMsg(ac, 479733965, "每日批池刷新了；额");
-    CQ_sendGroupMsg(ac, 391406854, "每日批池刷新了；额");
+    broadcastMsg("每日批池刷新了；额");
     CQ_addLog(ac, CQLOG_DEBUG, "pee", std::to_string(daily_refresh_time).c_str());
 }
 

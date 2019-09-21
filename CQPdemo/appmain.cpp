@@ -380,8 +380,72 @@ std::string strip(std::string& s)
     return s.substr(start, end + 1 - start);
 }
 
+// Big endian
+
+GroupMemberInfo::GroupMemberInfo(const char* base64_decoded)
+{
+    size_t offset = 0;
+    int16_t len = 0;
+
+    group = ntohll(*(uint64_t*)(base64_decoded[offset]));
+    offset += 8;
+
+    qqid = ntohll(*(uint64_t*)(base64_decoded[offset]));
+    offset += 8;
+
+    len = ntohs(*(uint16_t*)(base64_decoded[offset]));
+    offset += 2;
+    nick = simple_str(len, &base64_decoded[offset]);
+    offset += len;
+
+    len = ntohs(*(uint16_t*)(base64_decoded[offset]));
+    offset += 2;
+    card = simple_str(len, &base64_decoded[offset]);
+    offset += len;
+
+    gender = ntohl(*(uint32_t*)(base64_decoded[offset]));
+    offset += 4;
+
+    age = ntohl(*(uint32_t*)(base64_decoded[offset]));
+    offset += 4;
+
+    len = ntohs(*(uint16_t*)(base64_decoded[offset]));
+    offset += 2;
+    area = simple_str(len, &base64_decoded[offset]);
+    offset += len;
+
+    joinTime = ntohl(*(uint32_t*)(base64_decoded[offset]));
+    offset += 4;
+
+    speakTime = ntohl(*(uint32_t*)(base64_decoded[offset]));
+    offset += 4;
+
+    len = ntohs(*(uint16_t*)(base64_decoded[offset]));
+    offset += 2;
+    level = simple_str(len, &base64_decoded[offset]);
+    offset += len;
+
+    permission = ntohl(*(uint32_t*)(base64_decoded[offset]));
+    offset += 4;
+
+    dummy1 = ntohl(*(uint32_t*)(base64_decoded[offset]));
+    offset += 4;
+
+    len = ntohs(*(uint16_t*)(base64_decoded[offset]));
+    offset += 2;
+    title = simple_str(len, &base64_decoded[offset]);
+    offset += len;
+
+    titleExpireTime = ntohl(*(uint32_t*)(base64_decoded[offset]));
+    offset += 4;
+
+    canModifyCard = ntohl(*(uint32_t*)(base64_decoded[offset]));
+    offset += 4;
+}
+
 std::string getCardFromGroupInfoV2(const char* base64_decoded)
 {
+    /*
     size_t nick_offset = 8 + 8;
     size_t nick_len = (base64_decoded[nick_offset] << 8) + base64_decoded[nick_offset + 1];
     size_t card_offset = nick_offset + 2 + nick_len;
@@ -390,10 +454,13 @@ std::string getCardFromGroupInfoV2(const char* base64_decoded)
         return std::string(&base64_decoded[nick_offset+2], nick_len);
     else
         return std::string(&base64_decoded[card_offset+2], card_len);
+        */
+    return GroupMemberInfo(base64_decoded).card;
 }
 
 int getPermissionFromGroupInfoV2(const char* base64_decoded)
 {
+    /*
     size_t nick_offset = 8 + 8;
     size_t nick_len = (base64_decoded[nick_offset] << 8) + base64_decoded[nick_offset + 1];
     size_t card_offset = nick_offset + 2 + nick_len;
@@ -407,6 +474,8 @@ int getPermissionFromGroupInfoV2(const char* base64_decoded)
            (base64_decoded[perm_offset + 1] << (8 * 2)) +
            (base64_decoded[perm_offset + 2] << (8 * 1)) +
            (base64_decoded[perm_offset + 3]);
+           */
+    return GroupMemberInfo(base64_decoded).permission;
 }
 
 #include "cpp-base64/base64.h"

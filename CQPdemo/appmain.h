@@ -62,6 +62,34 @@ std::string stripImage(std::string& s);
 std::string stripFace(std::string& s);
 
 
+class simple_str
+{
+private:
+    int16_t _len = 0;
+    char* _data = NULL;
+
+public:
+    int16_t length() const { return _len; }
+    const char* c_str() const { return _data; }
+    std::string operator()()
+    {
+        return std::string(_data);
+    }
+
+    simple_str() {}
+    simple_str(int16_t len, const char* str) : _len(len)
+    {
+        _data = new char[_len];
+        strcpy_s(_data, _len, str);
+        _data[_len - 1] = 0;
+    }
+    simple_str(const char* str) : simple_str(int16_t(strlen(str)), str) {}
+    simple_str(const std::string& str) : simple_str(int16_t(str.length()), str.c_str()) {}
+    ~simple_str() { if (_data) delete _data; }
+    simple_str(const simple_str& str) : simple_str(str.c_str()) {}
+    operator std::string() const { return std::string(_data); }
+};
+
 /*
 群成员信息
 即**CQ_getGroupMemberInfoV2**返回的信息
@@ -86,6 +114,31 @@ std::string stripFace(std::string& s);
 接下来4个字节，即一个int长度，专属头衔过期时间戳；
 接下来4个字节，即一个int长度，允许修改名片，1允许，猜测0是不允许；
 */
+struct GroupMemberInfo
+{
+    int64_t group;
+    int64_t qqid;
+    simple_str nick;
+    simple_str card;
+    int32_t gender;
+    int32_t age;
+    simple_str area;
+    int32_t joinTime;
+    int32_t speakTime;
+    simple_str level;
+    int32_t permission;
+    int32_t dummy1;
+    simple_str title;
+    int32_t titleExpireTime;
+    int32_t canModifyCard;
+
+    GroupMemberInfo(const char* base64_decoded);
+};
+uint64_t ntohll(uint64_t netllong)
+{
+    return uint64_t(ntohl(u_long(netllong & 0xFFFFFFFF))) + 
+        uint64_t(ntohl(u_long((netllong >> 32) & 0xFFFFFFFF))) << 32;
+}
 
 //card: 8+8+2+?+2+?
 std::string getCardFromGroupInfoV2(const char* base64_decoded);
@@ -99,6 +152,12 @@ inline std::string CQ_At(int64_t qq)
     std::stringstream ss;
     ss << "[CQ:at,qq=" << qq << "]";
     return ss.str();
+}
+
+inline void broadcastMsg(const char* msg)
+{
+    CQ_sendGroupMsg(ac, 479733965, msg);
+    CQ_sendGroupMsg(ac, 391406854, msg);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
