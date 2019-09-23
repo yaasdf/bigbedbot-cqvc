@@ -90,6 +90,9 @@ struct pdata
     time_t  adrenaline_expire_time;
     bool    chaos;
 
+    // counter
+    int     event_case_count;
+
 };
 inline std::map<int64_t, pdata> plist;
 void peeCreateTable();

@@ -139,7 +139,8 @@ command event_case::msgDispatcher(const char* msg)
                 }
             }
 
-            updateStamina(qq, 3);
+            updateStamina(qq, 1);
+            plist[qq].event_case_count++;
             const case_detail& reward = pool_event.draw(type);
             if (reward.worth > 300) ss << "歪哟，" << CQ_At(qq) << "发了，开出了";
             else ss << CQ_At(qq) << "，恭喜你开出了" << pool_event.caseFullName(reward);
@@ -166,7 +167,7 @@ void event_case::startEvent()
         auto event_case_time = time(nullptr);
         event_case_tm = *localtime(&event_case_time);
         std::stringstream ss;
-        ss << "限时活动已开始，这次是<" << pool_event.getType(type) << ">，请群员踊跃参加！";
+        ss << "限时活动已开始，这次是<" << pool_event.getType(type) << ">，每次收费" << pool_event.getTypeCost(type) << "批，请群员踊跃参加！";
         broadcastMsg(ss.str().c_str());
     }
     else
@@ -183,6 +184,10 @@ void event_case::stopEvent()
         auto event_case_time = time(nullptr);
         event_case_end_tm = *localtime(&event_case_time);
         broadcastMsg("限时活动已结束！");
+        for (auto& [qq, data] : plist)
+        {
+            data.event_case_count = 0;
+        }
     }
     else
     {

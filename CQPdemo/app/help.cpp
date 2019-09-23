@@ -4,6 +4,11 @@
 namespace help
 {
     const std::vector<std::string> changelog{
+        {R"(20190923
+Fix: 时间
+Fix: 批事件收益不对
+Fix: 活动开箱消费体力
+)"},
         {R"(20190921
 Add: 活动开箱（18:00~19:00）
 )"},

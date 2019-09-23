@@ -21,8 +21,8 @@ const std::vector<event_type> EVENT_POOL{
     { 0.01,[](int64_t group, int64_t qq) { plist[qq].keys += 2; modifyKeyCount(qq, plist[qq].keys); return "钻石钥匙，能开2个箱子"; }},
     { 0.01,[](int64_t group, int64_t qq) { plist[qq].keys += 10; modifyKeyCount(qq, plist[qq].keys); return "钥匙套装，获得10把钥匙"; }},
     { 0.05,[](int64_t group, int64_t qq) { plist[qq].currency += 1; modifyCurrency(qq, plist[qq].currency); return "扔在路边没人要的地下水，获得1个批"; }},
-    { 0.02,[](int64_t group, int64_t qq) { plist[qq].currency += 2; modifyCurrency(qq, plist[qq].currency); return "限量版康帅博牛肉面，获得5个批"; }},
-    { 0.01,[](int64_t group, int64_t qq) { plist[qq].currency += 5; modifyCurrency(qq, plist[qq].currency); return "爪子刀玩具模型，获得20个批"; }},
+    { 0.02,[](int64_t group, int64_t qq) { plist[qq].currency += 5; modifyCurrency(qq, plist[qq].currency); return "限量版康帅博牛肉面，获得5个批"; }},
+    { 0.01,[](int64_t group, int64_t qq) { plist[qq].currency += 20; modifyCurrency(qq, plist[qq].currency); return "爪子刀玩具模型，获得20个批"; }},
     { 0.005,[](int64_t group, int64_t qq) { plist[qq].currency += 100; modifyCurrency(qq, plist[qq].currency); return "大床纪念相册，获得100个批"; }},
     { 0.06,[](int64_t group, int64_t qq) { updateStamina(qq, -1); return "再来一次券，获得1点体力"; }},
     { 0.02,[](int64_t group, int64_t qq) { updateStamina(qq, -2); return "再来一次双人体验套餐，获得2点体力"; }},
@@ -74,7 +74,8 @@ const std::vector<event_type> EVENT_POOL{
 
     { 0.01,[](int64_t group, int64_t qq)
     {
-        double p = randReal(0.5, 1.5);
+        double p = randReal();
+        if (p < 0.5) p = 1.0 + (p / 0.5);
         plist[qq].currency *= p;
         modifyCurrency(qq, plist[qq].currency);
         using namespace std::string_literals;
