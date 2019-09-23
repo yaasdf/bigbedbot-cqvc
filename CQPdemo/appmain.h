@@ -86,7 +86,16 @@ public:
     simple_str(const char* str) : simple_str(int16_t(strlen(str)), str) {}
     simple_str(const std::string& str) : simple_str(int16_t(str.length()), str.c_str()) {}
     ~simple_str() { if (_data) delete _data; }
-    simple_str(const simple_str& str) : simple_str(str.c_str()) {}
+    simple_str(const simple_str& str) : simple_str(str.length(), str.c_str()) {}
+    simple_str& operator=(const simple_str& str)
+    {
+        if (_data) delete _data;
+        _len = str.length();
+        _data = new char[_len];
+        memcpy_s(_data, _len, str.c_str(), _len);
+        _data[_len - 1] = 0;
+        return *this;
+    }
     operator std::string() const { return std::string(_data); }
 };
 
