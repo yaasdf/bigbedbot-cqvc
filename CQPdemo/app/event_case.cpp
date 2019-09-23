@@ -143,7 +143,8 @@ command event_case::msgDispatcher(const char* msg)
             plist[qq].event_case_count++;
             const case_detail& reward = pool_event.draw(type);
             if (reward.worth > 300) ss << "歪哟，" << CQ_At(qq) << "发了，开出了";
-            else ss << CQ_At(qq) << "，恭喜你开出了" << pool_event.caseFullName(reward);
+            else ss << CQ_At(qq) << "，恭喜你开出了";
+            ss << pool_event.caseFullName(reward);
 
             plist[qq].currency += reward.worth;
             if (plist[qq].currency < 0) plist[qq].currency = 0;
