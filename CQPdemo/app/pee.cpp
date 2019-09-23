@@ -804,7 +804,7 @@ std::string unsmoke(int64_t qq)
 void flushDailyTimep(bool autotriggered)
 {
     daily_refresh_time = time(nullptr);
-    daily_refresh_tm = *localtime(&daily_refresh_time);
+    daily_refresh_tm = getLocalTime(TIMEZONE_HR, TIMEZONE_MIN);
     if (autotriggered) daily_refresh_tm_auto = daily_refresh_tm;
 
     remain_daily_bonus = DAILY_BONUS + extra_tomorrow;

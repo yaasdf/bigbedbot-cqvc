@@ -164,8 +164,7 @@ void event_case::startEvent()
     if (type == -1)
     {
         type = randInt(0, pool_event.getTypeCount() - 1);
-        auto event_case_time = time(nullptr);
-        event_case_tm = *localtime(&event_case_time);
+        event_case_tm = getLocalTime(TIMEZONE_HR, TIMEZONE_MIN);
         std::stringstream ss;
         ss << "限时活动已开始，这次是<" << pool_event.getType(type) << ">，每次收费" << pool_event.getTypeCost(type) << "批，请群员踊跃参加！";
         broadcastMsg(ss.str().c_str());
@@ -182,7 +181,7 @@ void event_case::stopEvent()
     {
         type = -1;
         auto event_case_time = time(nullptr);
-        event_case_end_tm = *localtime(&event_case_time);
+        event_case_tm = getLocalTime(TIMEZONE_HR, TIMEZONE_MIN);
         broadcastMsg("限时活动已结束！");
         for (auto& [qq, data] : plist)
         {

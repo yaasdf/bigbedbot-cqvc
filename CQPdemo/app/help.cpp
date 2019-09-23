@@ -5,7 +5,7 @@ namespace help
 {
     const std::vector<std::string> changelog{
         {R"(20190923
-Fix: 时间
+Fix: 时区问题（现在为UTC+8）
 Fix: 批事件收益不对
 Fix: 活动开箱消费体力
 )"},

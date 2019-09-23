@@ -85,10 +85,8 @@ CQEVENT(int32_t, __eventEnable, 0)() {
     std::thread(timedCommit, std::ref(pee::db)).detach();
 
     {
-        auto t = time(nullptr);
-        t -= 60 * 60 * 24; // yesterday
-        pee::daily_refresh_time = t;
-        pee::daily_refresh_tm_auto = *localtime(&t);
+        pee::daily_refresh_time = time(nullptr) - 60 * 60 * 24; // yesterday
+        pee::daily_refresh_tm_auto = getLocalTime(TIMEZONE_HR, TIMEZONE_MIN);
     }
 
     std::thread([&]() {
@@ -97,9 +95,7 @@ CQEVENT(int32_t, __eventEnable, 0)() {
         while (enabled)
         {
             std::this_thread::sleep_for(5s);
-
-            auto t = time(nullptr);
-            std::tm tm = *localtime(&t);
+            std::tm tm = getLocalTime(TIMEZONE_HR, TIMEZONE_MIN);
 
             // Skip if same day
             if (tm.tm_year <= rec.tm_year && tm.tm_yday <= rec.tm_yday)
@@ -117,9 +113,7 @@ CQEVENT(int32_t, __eventEnable, 0)() {
         while (enabled)
         {
             std::this_thread::sleep_for(5s);
-
-            auto t = time(nullptr);
-            std::tm tm = *localtime(&t);
+            std::tm tm = getLocalTime(TIMEZONE_HR, TIMEZONE_MIN);
 
             // Skip if same day
             if (tm.tm_year <= rec.tm_year && tm.tm_yday <= rec.tm_yday)
@@ -137,9 +131,7 @@ CQEVENT(int32_t, __eventEnable, 0)() {
         while (enabled)
         {
             std::this_thread::sleep_for(5s);
-
-            auto t = time(nullptr);
-            std::tm tm = *localtime(&t);
+            std::tm tm = getLocalTime(TIMEZONE_HR, TIMEZONE_MIN);
 
             // Skip if same day
             if (tm.tm_year <= rec.tm_year && tm.tm_yday <= rec.tm_yday)

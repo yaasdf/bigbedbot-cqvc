@@ -181,6 +181,18 @@ inline std::string CQ_At(int64_t qq)
     return ss.str();
 }
 
+inline const int TIMEZONE_HR = 8;
+inline const int TIMEZONE_MIN = 0;
+inline std::tm getLocalTime(int timezone_hr, int timezone_min, time_t offset = 0)
+{
+    auto t = time(nullptr) + offset;
+    t += timezone_hr * 60 * 60 + timezone_min * 60;
+
+    std::tm tm;
+    gmtime_s(&tm, &t);
+    return tm;
+}
+
 inline void broadcastMsg(const char* msg)
 {
     CQ_sendGroupMsg(ac, 479733965, msg);
