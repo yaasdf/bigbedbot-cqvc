@@ -53,6 +53,7 @@ inline std::map<std::string, commands> commands_str
     {"我要注册菠菜", commands::开通提示},
     {"我要开通菠菜", commands::开通},
     {"余额", commands::余额},
+    {"禁言", commands::禁烟},
     {"禁烟", commands::禁烟},
     {"解", commands::解禁},
     {"领批", commands::领批},
@@ -91,7 +92,7 @@ struct pdata
     bool    chaos;
 
     // counter
-    int     event_case_count;
+    //int     event_drop_count;
 
 };
 inline std::map<int64_t, pdata> plist;

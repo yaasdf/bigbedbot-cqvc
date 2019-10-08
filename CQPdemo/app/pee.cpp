@@ -1,8 +1,10 @@
 #include <sstream>
 #include <iomanip>
+#include <regex>
 #include "cqp.h"
 #include "pee.h"
 #include "appmain.h"
+#include "group.h"
 #include "cpp-base64/base64.h"
 
 namespace pee {
@@ -26,17 +28,31 @@ void modifyKeyCount(int64_t qq, int64_t c)
 int64_t nosmoking(int64_t group, int64_t target, int duration)
 {
     if (duration < 0) return -1;
-    const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, target, FALSE);
-    if (cqinfo && strlen(cqinfo) > 0)
+    if (grp::groups.find(group) != grp::groups.end())
     {
-        std::string decoded = base64_decode(std::string(cqinfo));
-        if (!decoded.empty())
+        if (grp::groups[group].haveMember(target))
         {
-            if (getPermissionFromGroupInfoV2(decoded.c_str()) >= 2) return -2;
+            if (grp::groups[group].members[target].permission >= 2) return -2;
             CQ_setGroupBan(ac, group, target, int64_t(duration) * 60);
             if (duration > 0) smokeGroups[target][group] = time(nullptr) + int64_t(duration) * 60;
             else if (duration == 0) smokeGroups[target].erase(group);
             return duration;
+        }
+    }
+    else
+    {
+        const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, target, FALSE);
+        if (cqinfo && strlen(cqinfo) > 0)
+        {
+            std::string decoded = base64_decode(std::string(cqinfo));
+            if (!decoded.empty())
+            {
+                if (getPermissionFromGroupInfoV2(decoded.c_str()) >= 2) return -2;
+                CQ_setGroupBan(ac, group, target, int64_t(duration) * 60);
+                if (duration > 0) smokeGroups[target][group] = time(nullptr) + int64_t(duration) * 60;
+                else if (duration == 0) smokeGroups[target].erase(group);
+                return duration;
+            }
         }
     }
     return -1;
@@ -243,14 +259,25 @@ command msgDispatcher(const char* msg)
     case commands::½ûÑÌ:
         c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw) -> std::string
         {
-            const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, CQ_getLoginQQ(ac), FALSE);
-            if (cqinfo && strlen(cqinfo) > 0)
+            if (grp::groups.find(group) != grp::groups.end())
             {
-                std::string decoded = base64_decode(std::string(cqinfo));
-                if (!decoded.empty())
+                if (grp::groups[group].haveMember(CQ_getLoginQQ(ac)))
                 {
-                    if (getPermissionFromGroupInfoV2(decoded.c_str()) < 2)
+                    if (grp::groups[group].members[CQ_getLoginQQ(ac)].permission < 2)
                         return "";
+                }
+            }
+            else
+            {
+                const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, CQ_getLoginQQ(ac), FALSE);
+                if (cqinfo && strlen(cqinfo) > 0)
+                {
+                    std::string decoded = base64_decode(std::string(cqinfo));
+                    if (!decoded.empty())
+                    {
+                        if (getPermissionFromGroupInfoV2(decoded.c_str()) < 2)
+                            return "";
+                    }
                 }
             }
 
@@ -279,14 +306,25 @@ command msgDispatcher(const char* msg)
     case commands::½â½û:
         c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw) -> std::string
         {
-            const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, CQ_getLoginQQ(ac), FALSE);
-            if (cqinfo && strlen(cqinfo) > 0)
+            if (grp::groups.find(group) != grp::groups.end())
             {
-                std::string decoded = base64_decode(std::string(cqinfo));
-                if (!decoded.empty())
+                if (grp::groups[group].haveMember(CQ_getLoginQQ(ac)))
                 {
-                    if (getPermissionFromGroupInfoV2(decoded.c_str()) < 2)
+                    if (grp::groups[group].members[CQ_getLoginQQ(ac)].permission < 2)
                         return "";
+                }
+            }
+            else
+            {
+                const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, CQ_getLoginQQ(ac), FALSE);
+                if (cqinfo && strlen(cqinfo) > 0)
+                {
+                    std::string decoded = base64_decode(std::string(cqinfo));
+                    if (!decoded.empty())
+                    {
+                        if (getPermissionFromGroupInfoV2(decoded.c_str()) < 2)
+                            return "";
+                    }
                 }
             }
 
@@ -690,7 +728,8 @@ command smokeIndicator(const char* msg)
     if (query.empty()) return command();
 
     auto cmd = query[0];
-    if (cmd.length() <= 4 || cmd.substr(0, 4) != "½ûÑÌ") return command();
+    if (cmd.length() <= 4) return command();
+    if (!std::regex_match(cmd.substr(0, 4), std::regex(R"(½û(ÑÌ|ÑÔ))"))) return command();
 
     command c;
     c.args = query;
@@ -701,11 +740,30 @@ command smokeIndicator(const char* msg)
             return "";
         }
         auto cmd = args[0];
-        // TODO find qqid from target nick name
+
         std::string targetName = cmd.substr(4);
         int64_t target = 0;
-        if (qqid_str.find(targetName) != qqid_str.end())
+
+        // @
+        if (std::smatch res; std::regex_match(targetName, res, std::regex(R"(\[CQ:at,qq=(\d+)\])")))
+            try {
+                target = std::stoll(res[0]);
+            }
+            catch (std::exception&) {
+                //ignore
+            }
+
+        // qqid_str
+        else if (qqid_str.find(targetName) != qqid_str.end())
             target = qqid_str[targetName];
+
+        // nick, card
+        else
+            if (grp::groups.find(group) != grp::groups.end())
+            {
+                if (int64_t qq = grp::groups[group].getMember(targetName.c_str()); qq != 0)
+                    target = qq;
+            }
 
         int64_t cost = -1;
         try {

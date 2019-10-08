@@ -217,6 +217,15 @@ CQAPI(const char*) CQ_getGroupMemberInfoV2(int32_t AuthCode, int64_t groupid, in
 }
 
 /*
+* 取群成员列表
+* groupid 目标QQ群
+*/
+CQAPI(const char*) CQ_getGroupMemberList(int32_t AuthCode, int64_t groupid)
+{
+    return "AAAAAQBgAAAAAACpiscAAAAAALxhTgAGw+aw/L79AAAAAAAAAAAAHgAEy9XW3VcZheRZlDxGAATHscuuAAAAAwAAAAAAAAAAAAAAAAAB";
+}
+
+/*
 * 取陌生人信息
 * QQID 目标QQ
 * nocache 不使用缓存

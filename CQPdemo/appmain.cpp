@@ -3,6 +3,7 @@
 * Api Version 9
 * Written by Coxxs & Thanks for the help of orzFly
 */
+#include <regex>
 
 #include "cqp.h"
 #include "appmain.h" //应用AppID等信息，请正确填写，否则酷Q可能无法加载
@@ -13,9 +14,37 @@
 #include "app/monopoly.h"
 #include "app/help.h"
 #include "app/event_case.h"
+#include "app/group.h"
 
 using namespace std;
 int64_t QQME;
+
+
+std::map<int, std::map<int, std::vector<std::function<void()>>>> timedEventQueue;
+void timedEventLoop()
+{
+    using namespace std::chrono_literals;
+    int prev_hr = 0, prev_min = 0;
+    while (enabled)
+    {
+        auto t = getLocalTime(TIMEZONE_HR, TIMEZONE_MIN, 0);
+        if (prev_min == t.tm_min)
+        {
+            std::this_thread::sleep_for(30s);
+            continue;
+        }
+
+        for (auto& f : timedEventQueue[t.tm_hour][t.tm_min])
+        {
+            if (f) f();
+        }
+
+        prev_hr = t.tm_hour;
+        prev_min = t.tm_min;
+        std::this_thread::sleep_for(1min);
+    }
+}
+
 
 /* 
 * 返回应用的ApiVer、Appid，打包后将不会调用
@@ -68,6 +97,7 @@ CQEVENT(int32_t, __eventExit, 0)() {
 	return 0;
 }
 
+
 /*
 * Type=1003 应用已被启用
 * 当应用被启用后，将收到此事件。
@@ -81,6 +111,10 @@ CQEVENT(int32_t, __eventEnable, 0)() {
     eat::foodLoadListFromDb();
     pee::peeCreateTable();
     pee::peeLoadFromDb();
+
+    timedEventQueue.clear();
+    std::thread(timedEventLoop).detach();
+
     std::thread(timedCommit, std::ref(eat::db)).detach();
     std::thread(timedCommit, std::ref(pee::db)).detach();
 
@@ -89,59 +123,24 @@ CQEVENT(int32_t, __eventEnable, 0)() {
         pee::daily_refresh_tm_auto = getLocalTime(TIMEZONE_HR, TIMEZONE_MIN);
     }
 
-    std::thread([&]() {
-        auto &rec = pee::daily_refresh_tm_auto;
-        using namespace std::chrono_literals;
-        while (enabled)
-        {
-            std::this_thread::sleep_for(5s);
-            std::tm tm = getLocalTime(TIMEZONE_HR, TIMEZONE_MIN);
+    timedEventQueue[pee::NEW_DAY_TIME_HOUR][pee::NEW_DAY_TIME_MIN].push_back([&]() {
+        pee::flushDailyTimep(true);
+    });
 
-            // Skip if same day
-            if (tm.tm_year <= rec.tm_year && tm.tm_yday <= rec.tm_yday)
-                continue;
+    // 照顾美国人
+    timedEventQueue[4][0].push_back([&]() {
+        event_case::startEvent();
+    });
+    timedEventQueue[5][0].push_back([&]() {
+        event_case::stopEvent();
+    });
 
-            if (tm.tm_hour >= pee::NEW_DAY_TIME_HOUR &&
-                tm.tm_min >= pee::NEW_DAY_TIME_MIN)
-                pee::flushDailyTimep(true);
-        }
-    }).detach();
-
-    std::thread([&]() {
-        auto& rec = event_case::event_case_tm;
-        using namespace std::chrono_literals;
-        while (enabled)
-        {
-            std::this_thread::sleep_for(5s);
-            std::tm tm = getLocalTime(TIMEZONE_HR, TIMEZONE_MIN);
-
-            // Skip if same day
-            if (tm.tm_year <= rec.tm_year && tm.tm_yday <= rec.tm_yday)
-                continue;
-
-            if (tm.tm_hour >= event_case::EVENT_CASE_TIME_HOUR_START &&
-                tm.tm_min >= event_case::EVENT_CASE_TIME_MIN_START)
-                event_case::startEvent();
-        }
-    }).detach();
-
-    std::thread([&]() {
-        auto& rec = event_case::event_case_end_tm;
-        using namespace std::chrono_literals;
-        while (enabled)
-        {
-            std::this_thread::sleep_for(5s);
-            std::tm tm = getLocalTime(TIMEZONE_HR, TIMEZONE_MIN);
-
-            // Skip if same day
-            if (tm.tm_year <= rec.tm_year && tm.tm_yday <= rec.tm_yday)
-                continue;
-
-            if (tm.tm_hour >= event_case::EVENT_CASE_TIME_HOUR_END &&
-                tm.tm_min >= event_case::EVENT_CASE_TIME_MIN_END)
-                event_case::stopEvent();
-        }
-    }).detach();
+    timedEventQueue[event_case::EVENT_CASE_TIME_HOUR_START][event_case::EVENT_CASE_TIME_MIN_START].push_back([&]() {
+        event_case::startEvent();
+    });
+    timedEventQueue[event_case::EVENT_CASE_TIME_HOUR_END][event_case::EVENT_CASE_TIME_MIN_END].push_back([&]() {
+        event_case::stopEvent();
+    });
 
     std::string boot_info = help::boot_info();
     broadcastMsg(boot_info.c_str());
@@ -159,13 +158,12 @@ CQEVENT(int32_t, __eventEnable, 0)() {
 CQEVENT(int32_t, __eventDisable, 0)() {
     if (enabled)
     {
-        for (auto& [group, round] : duel::flipcoin::groupStat)
+        for (auto& [group, cfg] : grp::groups)
         {
-            duel::flipcoin::roundCancel(group);
-        }
-        for (auto& [group, round] : duel::roulette::groupStat)
-        {
-            duel::roulette::roundCancel(group);
+            if (cfg.flipcoin_running)
+                duel::flipcoin::roundCancel(group);
+            if (cfg.roulette_running)
+                duel::roulette::roundCancel(group);
         }
         pee::db.transactionStop();
         enabled = false;
@@ -180,7 +178,7 @@ CQEVENT(int32_t, __eventDisable, 0)() {
 */
 CQEVENT(int32_t, __eventPrivateMsg, 24)(int32_t subType, int32_t msgId, int64_t fromQQ, const char *msg, int32_t font) {
 
-    if (!strcmp(msg, "接近我"))
+    if (std::regex_match(msg, std::regex(R"((接近|解禁)(我)?)")))
     {
         CQ_sendPrivateMsg(ac, fromQQ, pee::unsmoke(fromQQ).c_str());
         return EVENT_BLOCK;
@@ -512,16 +510,35 @@ int getPermissionFromGroupInfoV2(const char* base64_decoded)
 #include "cpp-base64/base64.h"
 std::string getCard(int64_t group, int64_t qq)
 {
-    std::string qqname;
-    const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, qq, FALSE);
-    if (cqinfo && strlen(cqinfo) > 0)
+    if (grp::groups.find(group) != grp::groups.end())
     {
-        std::string decoded = base64_decode(std::string(cqinfo));
-        if (!decoded.empty())
-        {
-            qqname = getCardFromGroupInfoV2(decoded.c_str());
-        }
+        if (grp::groups[group].haveMember(qq))
+            return grp::groups[group].members[qq].card;
+        else
+            return CQ_At(qq);
     }
-    if (qqname.empty()) qqname = CQ_At(qq);
-    return qqname;
+    else
+    {
+        std::string qqname;
+        const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, qq, FALSE);
+        if (cqinfo && strlen(cqinfo) > 0)
+        {
+            std::string decoded = base64_decode(std::string(cqinfo));
+            if (!decoded.empty())
+            {
+                qqname = getCardFromGroupInfoV2(decoded.c_str());
+            }
+        }
+        if (qqname.empty()) qqname = CQ_At(qq);
+        return qqname;
+    }
+}
+
+void broadcastMsg(const char* msg)
+{
+    for (auto& [id, g] : grp::groups)
+    {
+        //CQ_sendGroupMsg(ac, group, msg);
+        g.sendMsg(msg);
+    }
 }

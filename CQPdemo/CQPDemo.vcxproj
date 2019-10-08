@@ -95,6 +95,7 @@
     <ClInclude Include="app\duel.h" />
     <ClInclude Include="app\eat.h" />
     <ClInclude Include="app\event_case.h" />
+    <ClInclude Include="app\group.h" />
     <ClInclude Include="app\help.h" />
     <ClInclude Include="app\monopoly.h" />
     <ClInclude Include="app\pee.h" />
@@ -110,9 +111,11 @@
     <ClCompile Include="app\eat.cpp" />
     <ClCompile Include="app\event_case.cpp" />
     <ClCompile Include="app\event_case_def.cpp" />
+    <ClCompile Include="app\group.cpp" />
     <ClCompile Include="app\help.cpp" />
     <ClCompile Include="app\monopoly.cpp" />
     <ClCompile Include="app\pee.cpp" />
+    <ClCompile Include="app\private\groupid.cpp" />
     <ClCompile Include="app\private\qqid.cpp" />
     <ClCompile Include="cpp-base64\base64.cpp" />
     <ClCompile Include="dllmain.cpp">

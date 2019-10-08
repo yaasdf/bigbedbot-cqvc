@@ -1,3 +1,4 @@
+#pragma once
 #define CQAPPID "com.yaasdf.bigbedbot" //请修改AppID，规则见 http://d.cqp.me/Pro/开发/基础信息
 #define CQAPPINFO CQAPIVERTEXT "," CQAPPID
 
@@ -141,12 +142,12 @@ struct GroupMemberInfo
     int32_t titleExpireTime;
     int32_t canModifyCard;
 
+    GroupMemberInfo() {}
     GroupMemberInfo(const char* base64_decoded);
 };
 
 #ifndef _WINSOCKAPI_
 #define _WINSOCKAPI_
-#endif
 inline uint16_t ntohs(uint16_t netshort)
 {
     return
@@ -163,9 +164,10 @@ inline uint32_t ntohl(uint32_t netlong)
 }
 inline uint64_t ntohll(uint64_t netllong)
 {
-    return (uint64_t(ntohl(uint32_t(netllong & 0xFFFFFFFF))) << 32) + 
+    return (uint64_t(ntohl(uint32_t(netllong & 0xFFFFFFFF))) << 32) +
         (uint64_t(ntohl(uint32_t((netllong >> 32) & 0xFFFFFFFF))));
 }
+#endif
 
 //card: 8+8+2+?+2+?
 std::string getCardFromGroupInfoV2(const char* base64_decoded);
@@ -193,11 +195,8 @@ inline std::tm getLocalTime(int timezone_hr, int timezone_min, time_t offset = 0
     return tm;
 }
 
-inline void broadcastMsg(const char* msg)
-{
-    CQ_sendGroupMsg(ac, 479733965, msg);
-    CQ_sendGroupMsg(ac, 391406854, msg);
-}
+#include <map>
+void broadcastMsg(const char* msg);
 
 ////////////////////////////////////////////////////////////////////////////////
 

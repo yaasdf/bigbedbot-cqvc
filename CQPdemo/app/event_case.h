@@ -38,6 +38,7 @@ public:
     int getTypeCost(size_t n) const { return types[n].second; }
 
     case_detail draw(int type);
+    std::string casePartName(const case_detail& c) const;
     std::string caseFullName(const case_detail& c) const;
 };
 

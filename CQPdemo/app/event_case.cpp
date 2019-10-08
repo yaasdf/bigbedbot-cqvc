@@ -8,6 +8,7 @@ using namespace event_case;
 #include "appmain.h"
 
 #include "pee.h"
+#include "group.h"
 
 case_pool::case_pool(const types_t& type_b, const levels_t& level_b, const std::vector<case_detail>& cases_b):
     types(type_b), levels(level_b)
@@ -76,10 +77,22 @@ case_detail case_pool::draw(int type)
     }
 }
 
-std::string case_pool::caseFullName(const case_detail& c) const
+std::string case_pool::casePartName(const case_detail& c) const
 {
     std::stringstream ss;
     //if (c.type >= 0 && c.type < getTypeCount()) ss << "[" << getType(c.type) << "] ";
+    if (c.level >= 0 && c.level < getLevelCount()) ss << "<" << getLevel(c.level) << "> ";
+    ss << c.name;
+    ss << " (" << c.worth << "批)";
+
+    std::string ret = ss.str();
+    return ret;
+}
+
+std::string case_pool::caseFullName(const case_detail& c) const
+{
+    std::stringstream ss;
+    if (c.type >= 0 && c.type < getTypeCount()) ss << "[" << getType(c.type) << "] ";
     if (c.level >= 0 && c.level < getLevelCount()) ss << "<" << getLevel(c.level) << "> ";
     ss << c.name;
     ss << " (" << c.worth << "批)";
@@ -140,13 +153,27 @@ command event_case::msgDispatcher(const char* msg)
             }
 
             updateStamina(qq, 1);
-            plist[qq].event_case_count++;
+            plist[qq].currency -= pool_event.getTypeCost(type);
             const case_detail& reward = pool_event.draw(type);
             if (reward.worth > 300) ss << "歪哟，" << CQ_At(qq) << "发了，开出了";
             else ss << CQ_At(qq) << "，恭喜你开出了";
-            ss << pool_event.caseFullName(reward);
-
+            ss << pool_event.casePartName(reward);
             plist[qq].currency += reward.worth;
+
+            // drop
+            if (randReal() < 0.1)
+            {
+                /*
+                ss << "，并获得1个箱子掉落";
+                plist[qq].event_drop_count++;
+                */
+                ss << "，并获得1个箱子掉落，开出了";
+                int type = randInt(0, pool_drop.getTypeCount() - 1);
+                auto dcase = pool_drop.draw(type);
+                plist[qq].currency += dcase.worth;
+                ss << pool_drop.caseFullName(dcase);
+            }
+
             if (plist[qq].currency < 0) plist[qq].currency = 0;
             modifyCurrency(qq, plist[qq].currency);
             //modifyBoxCount(qq, ++plist[qq].opened_box_count);
@@ -167,7 +194,7 @@ void event_case::startEvent()
         type = randInt(0, pool_event.getTypeCount() - 1);
         event_case_tm = getLocalTime(TIMEZONE_HR, TIMEZONE_MIN);
         std::stringstream ss;
-        ss << "限时活动已开始，这次是<" << pool_event.getType(type) << ">，每次收费" << pool_event.getTypeCost(type) << "批，请群员踊跃参加！";
+        ss << "限时活动已开始，这次是<" << pool_event.getType(type) << ">，每次收费" << pool_event.getTypeCost(type) << "批，请群员踊跃参加";
         broadcastMsg(ss.str().c_str());
     }
     else
@@ -182,11 +209,42 @@ void event_case::stopEvent()
     {
         type = -1;
         auto event_case_time = time(nullptr);
-        event_case_tm = getLocalTime(TIMEZONE_HR, TIMEZONE_MIN);
-        broadcastMsg("限时活动已结束！");
+        event_case_end_tm = getLocalTime(TIMEZONE_HR, TIMEZONE_MIN);
+
+        /*
+        std::map<int64_t, std::stringstream> msgbuf;
         for (auto& [qq, data] : plist)
         {
-            data.event_case_count = 0;
+            if (data.event_drop_count > 0)
+            {
+                auto& ss = msgbuf[qq];
+                ss << CQ_At(qq) << "获得" << data.event_drop_count << "个箱子掉落，开出了：";
+                while (data.event_drop_count--)
+                {
+                    int type = randInt(0, pool_drop.getTypeCount() - 1);
+                    auto dcase = pool_drop.draw(type);
+                    plist[qq].currency += dcase.worth;
+                    ss << "\n - " << pool_drop.caseFullName(dcase);
+                }
+            }
+        }
+        */
+
+        for (const auto& [group, cfg] : grp::groups)
+        {
+            std::stringstream ss;
+            ss << "限时活动已结束！";
+            /*
+            for (auto& [qq, data] : plist)
+            {
+                const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, qq, FALSE);
+                if (cqinfo && strlen(cqinfo) > 0 && msgbuf.find(qq) != msgbuf.end())
+                {
+                    ss << "\n" << msgbuf[qq].str();
+                }
+            }
+            CQ_sendGroupMsg(ac, group, ss.str().c_str());
+            */
         }
     }
     else

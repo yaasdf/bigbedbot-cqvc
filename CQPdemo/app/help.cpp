@@ -4,6 +4,12 @@
 namespace help
 {
     const std::vector<std::string> changelog{
+        {R"(20191008
+国庆上班纪念
+)"},
+        {R"(20190924
+Fix: 活动开箱掉落不动余额
+)"},
         {R"(20190923
 Fix: 时区问题（现在为UTC+8）
 Fix: 批事件收益不对

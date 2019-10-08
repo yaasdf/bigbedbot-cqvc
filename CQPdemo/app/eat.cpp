@@ -4,6 +4,7 @@
 #include "appmain.h"
 #include "cpp-base64/base64.h"
 #include "private/qqid.h"
+#include "group.h"
 #include <Windows.h>
 
 namespace eat {
@@ -13,17 +14,25 @@ std::string food::to_string(int64_t group)
     std::string qqname = "¸ô±ÚÈºÓÑ";
     if (group != 0 && offererType == food::QQ && offerer.qq != 0)
     {
-        const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, offerer.qq, FALSE);
-        if (cqinfo && strlen(cqinfo) > 0)
+        if (grp::groups.find(group) != grp::groups.end())
         {
-            //CQ_addLog(ac, CQLOG_DEBUG, "eat", cqinfo);
-            std::string decoded = base64_decode(std::string(cqinfo));
-            if (!decoded.empty())
+            if (grp::groups[group].haveMember(offerer.qq))
+                qqname = grp::groups[group].members[offerer.qq].card;
+        }
+        else
+        {
+            const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, offerer.qq, FALSE);
+            if (cqinfo && strlen(cqinfo) > 0)
             {
-                qqname = getCardFromGroupInfoV2(decoded.c_str());
+                //CQ_addLog(ac, CQLOG_DEBUG, "eat", cqinfo);
+                std::string decoded = base64_decode(std::string(cqinfo));
+                if (!decoded.empty())
+                {
+                    qqname = getCardFromGroupInfoV2(decoded.c_str());
+                }
+                else
+                    CQ_addLog(ac, CQLOG_ERROR, "eat", "groupmember base64 decode error");
             }
-            else
-                CQ_addLog(ac, CQLOG_ERROR, "eat", "groupmember base64 decode error");
         }
     }
 
