@@ -728,7 +728,7 @@ command smokeIndicator(const char* msg)
 
     auto cmd = query[0];
     if (cmd.length() <= 4) return command();
-    if (cmd.substr(0, 4) != "½ûÑÌ" || cmd.substr(0, 4) != "½ûÑÔ") return command();
+    if (cmd.substr(0, 4) != "½ûÑÌ" && cmd.substr(0, 4) != "½ûÑÔ") return command();
 
     command c;
     c.args = query;

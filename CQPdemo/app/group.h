@@ -19,10 +19,10 @@ public:
 
     std::map<int64_t, GroupMemberInfo> members;
 
-    bool flipcoin_running;
+    bool flipcoin_running = false;
     duel::flipcoin::game flipcoin_game;
 
-    bool roulette_running;
+    bool roulette_running = false;
     duel::roulette::game roulette_game;
 
     time_t daily_refresh_time = 0;

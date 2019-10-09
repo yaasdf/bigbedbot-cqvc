@@ -177,6 +177,7 @@ void roundStart(int64_t group)
 
     CQ_sendGroupMsg(ac, group, "新一轮的翻批开始了，请群员踊跃参加");
     grp::groups[group].flipcoin_running = true;
+    grp::groups[group].flipcoin_game = {};
 
     grp::groups[group].flipcoin_game.startTime = time(nullptr);
     std::thread([=]() {
@@ -377,6 +378,7 @@ void roundStart(int64_t group)
 
     CQ_sendGroupMsg(ac, group, "新一轮的摇号开始了，请群员踊跃参加");
     grp::groups[group].roulette_running = true;
+    grp::groups[group].roulette_game = {};
 
     grp::groups[group].roulette_game.startTime = time(nullptr);
     std::thread([=]() {

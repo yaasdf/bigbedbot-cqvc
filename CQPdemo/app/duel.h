@@ -57,11 +57,10 @@ struct bet
 };
 struct game
 {
-    int64_t total, front, back;
+    int64_t total = 0, front = 0, back = 0;
     std::map<int64_t, bet> pee_per_player;
-    time_t startTime;
+    time_t startTime = 0;
 };
-inline std::map<int64_t, game> groupStat;   // only 1 game for each group
 
 void roundStart(int64_t group);
 void roundAnnounce(int64_t group);
@@ -240,11 +239,10 @@ struct bet
 };
 struct game
 {
-    int64_t total, amount[GRID_COUNT];
+    int64_t total = 0, amount[GRID_COUNT]{ 0 };
     std::map<int64_t, bet> pee_per_player;
-    time_t startTime;
+    time_t startTime = 0;
 };
-inline std::map<int64_t, game> groupStat;   // only 1 game for each group
 
 void roundStart(int64_t group);
 void roundAnnounce(int64_t group);

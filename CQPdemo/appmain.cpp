@@ -95,13 +95,12 @@ CQEVENT(int32_t, __eventStartup, 0)() {
 CQEVENT(int32_t, __eventExit, 0)() {
     if (enabled)
     {
-        for (auto& [group, round] : duel::flipcoin::groupStat)
+        for (auto& [group, cfg] : grp::groups)
         {
-            duel::flipcoin::roundCancel(group);
-        }
-        for (auto& [group, round] : duel::roulette::groupStat)
-        {
-            duel::roulette::roundCancel(group);
+            if (cfg.flipcoin_running)
+                duel::flipcoin::roundCancel(group);
+            if (cfg.roulette_running)
+                duel::roulette::roundCancel(group);
         }
         pee::db.transactionStop();
         enabled = false;
@@ -225,29 +224,55 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t msgId, int64_t fr
         return EVENT_BLOCK;
     }
 
+    std::string buf;
+
     // ³ÔÊ²Ã´
     auto c = eat::msgDispatcher(msg);
-    if (c.func) CQ_sendGroupMsg(ac, fromGroup, c.func(fromGroup, fromQQ, c.args, msg).c_str());
+    if (c.func)
+    {
+        buf = c.func(fromGroup, fromQQ, c.args, msg);
+        if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
+    }
 
     // ¿ªÏä
     auto d = pee::msgDispatcher(msg);
-    if (d.func) CQ_sendGroupMsg(ac, fromGroup, d.func(fromGroup, fromQQ, d.args, msg).c_str());
+    if (d.func)
+    {
+        buf = d.func(fromGroup, fromQQ, d.args, msg);
+        if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
+    }
 
     // ½ûÑÌµø¿Ó
     auto e = pee::smokeIndicator(msg);
-    if (e.func) CQ_sendGroupMsg(ac, fromGroup, e.func(fromGroup, fromQQ, e.args, msg).c_str());
+    if (e.func)
+    {
+        buf = e.func(fromGroup, fromQQ, e.args, msg);
+        if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
+    }
 
     // 
     auto f = duel::msgDispatcher(msg);
-    if (f.func) CQ_sendGroupMsg(ac, fromGroup, f.func(fromGroup, fromQQ, f.args, msg).c_str());
+    if (f.func)
+    {
+        buf = f.func(fromGroup, fromQQ, f.args, msg);
+        if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
+    }
 
     // fate
     auto g = mnp::msgDispatcher(msg);
-    if (g.func) CQ_sendGroupMsg(ac, fromGroup, g.func(fromGroup, fromQQ, g.args, msg).c_str());
+    if (g.func)
+    {
+        buf = g.func(fromGroup, fromQQ, g.args, msg);
+        if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
+    }
 
     // event_case
     auto h = event_case::msgDispatcher(msg);
-    if (h.func) CQ_sendGroupMsg(ac, fromGroup, h.func(fromGroup, fromQQ, h.args, msg).c_str());
+    if (h.func)
+    {
+        buf = h.func(fromGroup, fromQQ, h.args, msg);
+        if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
+    }
 
     // update smoke status 
     if (fromQQ != QQME && fromQQ != 10000 && fromQQ != 1000000)
