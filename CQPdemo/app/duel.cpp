@@ -3,6 +3,7 @@
 #include "appmain.h"
 #include <sstream>
 #include <set>
+#include <thread>
 #include "group.h"
 using namespace std::string_literals;
 std::string str_put_fail = "Äã»á²»»á"s + EMOJI_DOWN + "×¢£¿";

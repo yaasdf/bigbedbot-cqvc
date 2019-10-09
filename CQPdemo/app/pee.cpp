@@ -1,6 +1,5 @@
 #include <sstream>
 #include <iomanip>
-#include <regex>
 #include "cqp.h"
 #include "pee.h"
 #include "appmain.h"
@@ -729,7 +728,7 @@ command smokeIndicator(const char* msg)
 
     auto cmd = query[0];
     if (cmd.length() <= 4) return command();
-    if (!std::regex_match(cmd.substr(0, 4), std::regex(R"(½û(ÑÌ|ÑÔ))"))) return command();
+    if (cmd.substr(0, 4) != "½ûÑÌ" || cmd.substr(0, 4) != "½ûÑÔ") return command();
 
     command c;
     c.args = query;
@@ -745,13 +744,10 @@ command smokeIndicator(const char* msg)
         int64_t target = 0;
 
         // @
-        if (std::smatch res; std::regex_match(targetName, res, std::regex(R"(\[CQ:at,qq=(\d+)\])")))
-            try {
-                target = std::stoll(res[0]);
-            }
-            catch (std::exception&) {
-                //ignore
-            }
+        if (int64_t tmp; tmp = stripAt(targetName))
+        {
+            target = tmp;
+        }
 
         // qqid_str
         else if (qqid_str.find(targetName) != qqid_str.end())

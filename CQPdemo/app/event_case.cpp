@@ -2,7 +2,6 @@
 using namespace event_case;
 
 #include <iostream>
-#include <regex>
 #include <sstream>
 #include "cqp.h"
 #include "appmain.h"

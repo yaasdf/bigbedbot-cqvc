@@ -3,8 +3,6 @@
 * Api Version 9
 * Written by Coxxs & Thanks for the help of orzFly
 */
-#include <regex>
-
 #include "cqp.h"
 #include "appmain.h" //应用AppID等信息，请正确填写，否则酷Q可能无法加载
 
@@ -19,6 +17,20 @@
 using namespace std;
 int64_t QQME;
 
+#include "app/dbconn.h"
+#include <thread>
+#include <chrono>
+void timedCommit(SQLite& db)
+{
+    db.transactionStart();
+    while (enabled)
+    {
+        using namespace std::chrono_literals;
+        std::this_thread::sleep_for(1min);
+        db.commit(true);
+    }
+    db.transactionStop();
+}
 
 std::map<int, std::map<int, std::vector<std::function<void()>>>> timedEventQueue;
 void timedEventLoop()
@@ -112,6 +124,9 @@ CQEVENT(int32_t, __eventEnable, 0)() {
     pee::peeCreateTable();
     pee::peeLoadFromDb();
 
+    for (auto& g : grp::groups)
+        g.second.updateMembers();
+
     timedEventQueue.clear();
     std::thread(timedEventLoop).detach();
 
@@ -122,6 +137,11 @@ CQEVENT(int32_t, __eventEnable, 0)() {
         pee::daily_refresh_time = time(nullptr) - 60 * 60 * 24; // yesterday
         pee::daily_refresh_tm_auto = getLocalTime(TIMEZONE_HR, TIMEZONE_MIN);
     }
+
+    timedEventQueue[0][0].push_back([&]() {
+        for (auto& g : grp::groups)
+            g.second.updateMembers();
+    });
 
     timedEventQueue[pee::NEW_DAY_TIME_HOUR][pee::NEW_DAY_TIME_MIN].push_back([&]() {
         pee::flushDailyTimep(true);
@@ -178,7 +198,7 @@ CQEVENT(int32_t, __eventDisable, 0)() {
 */
 CQEVENT(int32_t, __eventPrivateMsg, 24)(int32_t subType, int32_t msgId, int64_t fromQQ, const char *msg, int32_t font) {
 
-    if (std::regex_match(msg, std::regex(R"((接近|解禁)(我)?)")))
+    if (!strcmp(msg, "接近我") || !strcmp(msg, "解禁我"))
     {
         CQ_sendPrivateMsg(ac, fromQQ, pee::unsmoke(fromQQ).c_str());
         return EVENT_BLOCK;
@@ -349,68 +369,6 @@ CQEVENT(int32_t, __menuB, 0)() {
 }
 
 
-//////////////////////////////////
-std::vector<std::string> msg2args(const char* msg)
-{
-    std::vector<std::string> query;
-    if (msg == nullptr) return query;
-    std::stringstream ss(msg);
-    while (ss)
-    {
-        std::string s;
-        ss >> s;
-        if (!s.empty())
-            query.push_back(s);
-    }
-    return query;
-}
-
-#define byte win_byte_override 
-#include <Windows.h>
-#undef byte
-std::string gbk2utf8(std::string gbk)
-{
-    int len = MultiByteToWideChar(CP_ACP, 0, gbk.c_str(), -1, NULL, 0);
-    wchar_t wstr[128];
-    memset(wstr, 0, sizeof(wstr));
-
-    MultiByteToWideChar(CP_ACP, 0, gbk.c_str(), -1, wstr, len);
-    len = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, NULL, 0, NULL, NULL);
-
-    char str[256];
-    memset(str, 0, sizeof(str));
-    WideCharToMultiByte(CP_UTF8, 0, wstr, -1, str, len, NULL, NULL);
-
-    return std::string(str);
-}
-
-std::string utf82gbk(std::string utf8)
-{
-    int len = MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, NULL, 0);
-    wchar_t wstr[128];
-    memset(wstr, 0, sizeof(wstr));
-
-    MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, wstr, len);
-    len = WideCharToMultiByte(CP_ACP, 0, wstr, -1, NULL, 0, NULL, NULL);
-
-    char str[256];
-    memset(str, 0, sizeof(str));
-    WideCharToMultiByte(CP_ACP, 0, wstr, -1, str, len, NULL, NULL);
-
-    return std::string(str);
-}
-
-std::string strip(std::string& s)
-{
-    int end = (int)s.length() - 1;
-    int start = 0;
-    while (start < (int)s.length() - 1 && (s[start] == ' ')) ++start;
-    while (end > start && (s[end] == ' ' || s[end] == '\n' || s[end] == '\r')) --end;
-    return s.substr(start, end + 1 - start);
-}
-
-// Big endian
-
 GroupMemberInfo::GroupMemberInfo(const char* base64_decoded)
 {
     size_t offset = 0;
@@ -451,7 +409,7 @@ GroupMemberInfo::GroupMemberInfo(const char* base64_decoded)
 
     len = ntohs(*(uint16_t*)(&base64_decoded[offset]));
     offset += 2;
-    level = simple_str(len +1 , &base64_decoded[offset]);
+    level = simple_str(len + 1, &base64_decoded[offset]);
     offset += len;
 
     permission = ntohl(*(uint32_t*)(&base64_decoded[offset]));
@@ -462,7 +420,7 @@ GroupMemberInfo::GroupMemberInfo(const char* base64_decoded)
 
     len = ntohs(*(uint16_t*)(&base64_decoded[offset]));
     offset += 2;
-    title = simple_str(len+1, &base64_decoded[offset]);
+    title = simple_str(len + 1, &base64_decoded[offset]);
     offset += len;
 
     titleExpireTime = ntohl(*(uint32_t*)(&base64_decoded[offset]));
@@ -531,14 +489,5 @@ std::string getCard(int64_t group, int64_t qq)
         }
         if (qqname.empty()) qqname = CQ_At(qq);
         return qqname;
-    }
-}
-
-void broadcastMsg(const char* msg)
-{
-    for (auto& [id, g] : grp::groups)
-    {
-        //CQ_sendGroupMsg(ac, group, msg);
-        g.sendMsg(msg);
     }
 }

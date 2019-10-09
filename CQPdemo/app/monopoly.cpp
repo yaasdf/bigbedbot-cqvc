@@ -3,6 +3,8 @@
 #include "appmain.h"
 #include "private/qqid.h"
 #include <cmath>
+#include <thread>
+#include <sstream>
 
 extern time_t banTime_me;
 

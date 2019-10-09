@@ -34,9 +34,11 @@ public:
     int64_t getMember(const char* name);
     void sendMsg(const char* msg);
     Group() = default;
-    Group(int64_t id) : group_id(id) { updateMembers(); }
+    Group(int64_t id) : group_id(id) {}
 };
 
 extern std::map<int64_t, Group> groups;
 
 }
+
+void broadcastMsg(const char* msg);
