@@ -1,6 +1,7 @@
 #include "monopoly.h"
 #include "cqp.h"
 #include "appmain.h"
+#include "group.h"
 #include "private/qqid.h"
 #include <cmath>
 #include <thread>
@@ -86,8 +87,7 @@ const std::vector<event_type> EVENT_POOL{
 
     { 0.01,[](int64_t group, int64_t qq) -> std::string
     {
-        const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, qqid_dk, FALSE);
-        if (cqinfo && strlen(cqinfo) > 0)
+        if (grp::groups[group].haveMember(qqid_dk))
         {
             nosmoking(group, qqid_dk, 1);
             return "干死也军车，烟他！";
@@ -99,8 +99,7 @@ const std::vector<event_type> EVENT_POOL{
     {
         for (auto& [qq, pd] : plist)
         {
-            const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, qq, FALSE);
-            if (cqinfo && strlen(cqinfo) > 0)
+            if (grp::groups[group].haveMember(qq))
             {
                 auto [enough, stamina, t] = updateStamina(qq, 0);
                 updateStamina(qq, stamina);
@@ -114,8 +113,7 @@ const std::vector<event_type> EVENT_POOL{
     {
         for (auto& [qq, pd] : plist)
         {
-            const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, qq, FALSE);
-            if (cqinfo && strlen(cqinfo) > 0)
+            if (grp::groups[group].haveMember(qq))
             {
                 if (plist[qq].meteor_shield)
                 {
@@ -170,8 +168,7 @@ const std::vector<event_type> EVENT_POOL{
     {
         for (auto& [qq, pd] : plist)
         {
-            const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, qq, FALSE);
-            if (cqinfo && strlen(cqinfo) > 0)
+            if (grp::groups[group].haveMember(qq))
             {
                 updateStamina(qq, -pee::MAX_STAMINA);
             }
@@ -183,8 +180,7 @@ const std::vector<event_type> EVENT_POOL{
     {
         for (auto& [qq, pd] : plist)
         {
-            const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, qq, FALSE);
-            if (cqinfo && strlen(cqinfo) > 0)
+            if (grp::groups[group].haveMember(qq))
             {
                 int bonus = randInt(50, 1000);
                 plist[qq].currency += bonus;
@@ -196,8 +192,7 @@ const std::vector<event_type> EVENT_POOL{
 
     { 0.01,[](int64_t group, int64_t qq) -> std::string
     {
-        const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, qqid_dk, FALSE);
-        if (cqinfo && strlen(cqinfo) > 0)
+        if (grp::groups[group].haveMember(qqid_dk))
         {
             int d = randInt(1, 5);
             nosmoking(group, qq, d);
@@ -287,8 +282,7 @@ const std::vector<event_type> EVENT_POOL{
         std::vector<int64_t> grouplist;
         for (auto& [qq, pd] : plist)
         {
-            const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, qq, FALSE);
-            if (cqinfo && strlen(cqinfo) > 0)
+            if (grp::groups[group].haveMember(qq))
                 grouplist.push_back(qq);
         }
         size_t idx = randInt(0, grouplist.size() - 1);

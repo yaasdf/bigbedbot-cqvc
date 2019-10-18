@@ -407,12 +407,12 @@ GroupMemberInfo::GroupMemberInfo(const char* base64_decoded)
 
     len = ntohs(*(uint16_t*)(&base64_decoded[offset]));
     offset += 2;
-    nick = simple_str(len + 1, &base64_decoded[offset]);
+    nick = simple_str(len, &base64_decoded[offset]);
     offset += len;
 
     len = ntohs(*(uint16_t*)(&base64_decoded[offset]));
     offset += 2;
-    card = simple_str(len + 1, &base64_decoded[offset]);
+    card = simple_str(len, &base64_decoded[offset]);
     offset += len;
 
     gender = ntohl(*(uint32_t*)(&base64_decoded[offset]));
@@ -423,7 +423,7 @@ GroupMemberInfo::GroupMemberInfo(const char* base64_decoded)
 
     len = ntohs(*(uint16_t*)(&base64_decoded[offset]));
     offset += 2;
-    area = simple_str(len + 1, &base64_decoded[offset]);
+    area = simple_str(len, &base64_decoded[offset]);
     offset += len;
 
     joinTime = ntohl(*(uint32_t*)(&base64_decoded[offset]));
@@ -434,7 +434,7 @@ GroupMemberInfo::GroupMemberInfo(const char* base64_decoded)
 
     len = ntohs(*(uint16_t*)(&base64_decoded[offset]));
     offset += 2;
-    level = simple_str(len + 1, &base64_decoded[offset]);
+    level = simple_str(len, &base64_decoded[offset]);
     offset += len;
 
     permission = ntohl(*(uint32_t*)(&base64_decoded[offset]));
@@ -445,7 +445,7 @@ GroupMemberInfo::GroupMemberInfo(const char* base64_decoded)
 
     len = ntohs(*(uint16_t*)(&base64_decoded[offset]));
     offset += 2;
-    title = simple_str(len + 1, &base64_decoded[offset]);
+    title = simple_str(len, &base64_decoded[offset]);
     offset += len;
 
     titleExpireTime = ntohl(*(uint32_t*)(&base64_decoded[offset]));
@@ -496,7 +496,8 @@ std::string getCard(int64_t group, int64_t qq)
     if (grp::groups.find(group) != grp::groups.end())
     {
         if (grp::groups[group].haveMember(qq))
-            return grp::groups[group].members[qq].card;
+            return grp::groups[group].members[qq].card.length() != 0 ?
+                grp::groups[group].members[qq].card : grp::groups[group].members[qq].nick;
         else
             return CQ_At(qq);
     }

@@ -242,8 +242,8 @@ void event_case::stopEvent()
                     ss << "\n" << msgbuf[qq].str();
                 }
             }
-            CQ_sendGroupMsg(ac, group, ss.str().c_str());
             */
+            CQ_sendGroupMsg(ac, group, ss.str().c_str());
         }
     }
     else

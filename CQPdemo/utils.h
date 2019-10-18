@@ -51,9 +51,9 @@ public:
     simple_str() {}
     simple_str(int16_t len, const char* str) : _len(len)
     {
-        _data = new char[_len];
-        memcpy_s(_data, _len, str, _len);
-        _data[_len - 1] = 0;
+        _data = new char[_len + 1];
+        memcpy_s(_data, _len + 1, str, _len + 1);
+        _data[_len] = 0;
     }
     simple_str(const char* str) : simple_str(int16_t(strlen(str)), str) {}
     simple_str(const std::string& str) : simple_str(int16_t(str.length()), str.c_str()) {}
@@ -63,9 +63,9 @@ public:
     {
         if (_data) delete _data;
         _len = str.length();
-        _data = new char[_len];
-        memcpy_s(_data, _len, str.c_str(), _len);
-        _data[_len - 1] = 0;
+        _data = new char[_len + 1];
+        memcpy_s(_data, _len + 1, str.c_str(), _len + 1);
+        _data[_len] = 0;
         return *this;
     }
     operator std::string() const { return std::string(_data); }
