@@ -2,17 +2,37 @@
 #include <sstream>
 
 //////////////////////////////////
-std::vector<std::string> msg2args(const char* msg)
+std::vector<std::string> msg2args(const char* msg, int max)
 {
     std::vector<std::string> query;
     if (msg == nullptr) return query;
     std::stringstream ss(msg);
-    while (ss)
+    int count = 1;
+    while (ss && count < max)
     {
         std::string s;
         ss >> s;
         if (!s.empty())
+        {
             query.push_back(s);
+            ++count;
+        }
+    }
+    if (!ss.eof())
+    {
+        while (!ss.eof())
+        {
+            char c = ss.get();
+            if (c != ' ' && c != '\t')
+            {
+                ss.unget();
+                break;
+            }
+        }
+        char buf[256];
+        ss.getline(buf, sizeof(buf));
+        std::string s(buf);
+        query.push_back(s);
     }
     return query;
 }

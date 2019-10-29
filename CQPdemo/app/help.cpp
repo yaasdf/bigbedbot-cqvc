@@ -3,72 +3,19 @@
 #include <algorithm>
 namespace help
 {
-    const std::vector<std::string> changelog{
-        {R"(20191008
-国庆上班纪念
-)"},
-        {R"(20190924
-Fix: 活动开箱掉落不动余额
-)"},
-        {R"(20190923
-Fix: 时区问题（现在为UTC+8）
-Fix: 批事件收益不对
-Fix: 活动开箱消费体力
-)"},
-        {R"(20190921
-Add: 活动开箱（18:00~19:00）
-)"},
-        {R"(20190919
-Fix: 特殊开箱（测试，3体力+表格批一次）
-Fix: 事件[融合药水]真的排除了0
-)"},
-        {R"(20190916
-Fix: 特殊开箱（测试，3体力+表格批一次）
-Mod: 事件[电子烟] 概率->0.5%
-Mod: 事件[流感病毒] 概率->0.1%
-)"},
-        {R"(20190909
-Del: 事件[循环药水]（其实上一次就删了）
-Add: 特殊开箱（测试，3体力+表格批一次）
-)"},
-        {R"(20190902
-Fix: 气泵没用
-Mod: 融合药水排除0
-Add: 事件[世界线震动预警]
-)"},
-        {R"(20190830
-Add: changelog
-Add: 事件[电子烟]
-Add: 事件[流感病毒]
-Mod: 气泵次数为5
-Mod: 真空抽气机会覆盖气泵效果
-Fix: 未注册的人可以摇号
-)"},
-    };
-
     std::string boot_info()
     {
         std::stringstream ss;
         ss << "bot活了！";
-        ss << help(1);
+        ss << help();
         return ss.str();
     }
 
-    std::string help(unsigned count)
+    std::string help()
     {
         std::stringstream ss;
-        ss << "最后更新日期：" << __TIMESTAMP__ << std::endl;
-        ss << "修改记录：" << std::endl;
-        for (unsigned i = 0; i < count && i < changelog.size(); ++i)
-        {
-            ss << changelog[i];
-        }
-        std::string ret = ss.str();
-        while (ret.back() == '\n' || ret.back() == 'r')
-        {
-            while (ret.back() == '\n') ret.pop_back();
-            while (ret.back() == '\r') ret.pop_back();
-        }
-        return ret;
+        ss << "最后更新日期：" << __TIMESTAMP__ << std::endl <<
+            "帮助文档：https://github.com/yaasdf/bigbedbot-cqvc/tree/master/CQPdemo";
+        return ss.str();
     }
 }

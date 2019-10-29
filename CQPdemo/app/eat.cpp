@@ -18,8 +18,6 @@ std::string food::to_string(int64_t group)
         {
             if (grp::groups[group].haveMember(offerer.qq))
                 qqname = getCard(group, offerer.qq);
-            else
-                CQ_addLog(ac, CQLOG_ERROR, "eat", "groupmember base64 decode error");
         }
         else
         {

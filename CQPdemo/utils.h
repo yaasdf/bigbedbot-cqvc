@@ -3,7 +3,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include <vector>
 #include <string>
-std::vector<std::string> msg2args(const char* msg);
+std::vector<std::string> msg2args(const char* msg, int max = INT_MAX);
 std::string gbk2utf8(std::string gbk);
 std::string utf82gbk(std::string utf8);
 

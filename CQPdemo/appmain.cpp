@@ -13,6 +13,9 @@
 #include "app/help.h"
 #include "app/event_case.h"
 #include "app/group.h"
+#include "app/weather.h"
+
+#include <curl/curl.h>
 
 using namespace std;
 int64_t QQME;
@@ -82,7 +85,7 @@ CQEVENT(int32_t, Initialize, 4)(int32_t AuthCode) {
 * 如非必要，不建议在这里加载窗口。（可以添加菜单，让用户手动打开窗口）
 */
 CQEVENT(int32_t, __eventStartup, 0)() {
-
+    curl_global_init(CURL_GLOBAL_ALL);
 	return 0;
 }
 
@@ -93,6 +96,7 @@ CQEVENT(int32_t, __eventStartup, 0)() {
 * 本函数调用完毕后，酷Q将很快关闭，请不要再通过线程等方式执行其他代码。
 */
 CQEVENT(int32_t, __eventExit, 0)() {
+    curl_global_cleanup();
     if (enabled)
     {
         for (auto& [group, cfg] : grp::groups)
@@ -274,6 +278,14 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t msgId, int64_t fr
         if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
     }
 
+    // event_case
+    auto i = weather::msgDispatcher(msg);
+    if (i.func)
+    {
+        buf = i.func(fromGroup, fromQQ, i.args, msg);
+        if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
+    }
+
     // update smoke status 
     if (fromQQ != QQME && fromQQ != 10000 && fromQQ != 1000000)
     {
@@ -288,7 +300,7 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t msgId, int64_t fr
                 pee::smokeGroups.erase(g);
         }
     }
-    return (c.func || d.func || e.func || f.func || g.func || h.func) ? EVENT_BLOCK : EVENT_IGNORE;
+    return (c.func || d.func || e.func || f.func || g.func || h.func || i.func) ? EVENT_BLOCK : EVENT_IGNORE;
 	//return EVENT_BLOCK; //关于返回值说明, 见“_eventPrivateMsg”函数
 }
 
