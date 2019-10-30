@@ -106,6 +106,7 @@
     <ClInclude Include="app\private\openweather-apikey.h" />
     <ClInclude Include="app\private\qqid.h" />
     <ClInclude Include="app\private\seniverse-apikey.h" />
+    <ClInclude Include="app\steam_parser.h" />
     <ClInclude Include="app\weather.h" />
     <ClInclude Include="app\weathercn_api.h" />
     <ClInclude Include="cpp-base64\base64.h" />
@@ -126,6 +127,7 @@
     <ClCompile Include="app\pee.cpp" />
     <ClCompile Include="app\private\groupid.cpp" />
     <ClCompile Include="app\private\qqid.cpp" />
+    <ClCompile Include="app\steam_parser.cpp" />
     <ClCompile Include="app\weather.cpp" />
     <ClCompile Include="cpp-base64\base64.cpp" />
     <ClCompile Include="dllmain.cpp">

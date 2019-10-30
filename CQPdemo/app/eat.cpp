@@ -6,8 +6,90 @@
 #include "private/qqid.h"
 #include "group.h"
 #include <Windows.h>
+#include <curl/curl.h>
+#include "steam_parser.h"
 
 namespace eat {
+
+class curl_buffer
+{
+public:
+    int length = 0;
+    char* content = NULL;
+    curl_buffer() = delete;
+    curl_buffer(int len) { content = new char[len]; memset(content, 0, len * sizeof(char)); }
+    ~curl_buffer() { if (content) delete content; }
+};
+
+size_t curl_write(void* buffer, size_t size, size_t count, void* stream)
+{
+    curl_buffer* buf = (curl_buffer*)stream;
+    int newsize = size * count;
+    memcpy(buf->content + buf->length, buffer, newsize);
+    buf->length += newsize;
+    return newsize;
+}
+
+steam::SteamAppListParser games;
+//std::vector<std::pair<long, std::string>> steamGameList;
+void updateSteamGameList()
+{
+    CURL *curl = curl_easy_init();
+    if (!curl)
+    {
+        CQ_addLog(ac, CQLOG_WARNING, "play", "curl init error");
+    }
+
+    curl_buffer curlbuf(8 * 1024 * 1024);   // 8MB
+    curl_easy_setopt(curl, CURLOPT_URL, "http://api.steampowered.com/ISteamApps/GetAppList/v0002/?key=STEAMKEY&format=json");
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &curlbuf);
+#ifdef _DEBUG
+    curl_easy_setopt(curl, CURLOPT_PROXY, "http://localhost:1080");
+#endif
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30);
+    int ret = curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
+
+    switch (ret)
+    {
+    case CURLE_OK:
+        switch (games.parse(curlbuf.content))
+        {
+        case 2:
+            CQ_addLog(ac, CQLOG_WARNING, "play", "parse error");
+            break;
+
+        case 3:
+            CQ_addLog(ac, CQLOG_WARNING, "play", "parsing fsm state error");
+            break;
+
+        case 4:
+            CQ_addLog(ac, CQLOG_WARNING, "play", "unexpected end of brace");
+            break;
+
+        case 5:
+            CQ_addLog(ac, CQLOG_WARNING, "play", "deadloop detected");
+            break;
+
+        default:
+            break;
+        }
+        break;
+
+    default:
+    {
+        char msg[128];
+        sprintf(msg, "curl error: %d", ret);
+        CQ_addLog(ac, CQLOG_WARNING, "play", msg);
+    }
+        break;
+    }
+
+    char msg[128];
+    sprintf(msg, "added %u games", games.games.size());
+    CQ_addLog(ac, CQLOG_DEBUG, "play", msg);
+}
 
 std::string food::to_string(int64_t group)
 {
@@ -113,7 +195,19 @@ command msgDispatcher(const char* msg)
     case commands::玩什么:
         c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw) -> std::string
         {
-            return "玩什么";
+            if (games.available)
+            {
+                int idx = randInt(0, games.games.size());
+                std::stringstream ss;
+                ss << CQ_At(qq) << "，你阔以选择 " <<
+                    games.games[idx].name << std::endl <<
+                    "https://store.steampowered.com/app/" << games.games[idx].appid;
+                return ss.str();
+            }
+            else
+            {
+                return "Steam游戏列表不可用";
+            }
         };
         break;
     case commands::吃什么十连:

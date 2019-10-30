@@ -66,6 +66,12 @@
     <ClInclude Include="app\private\openweather-apikey.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="app\weathercn_api.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="app\steam_parser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -114,6 +120,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="app\weather.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="app\steam_parser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

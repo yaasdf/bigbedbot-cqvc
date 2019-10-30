@@ -62,5 +62,7 @@ struct drink
 inline std::vector<drink> drinkList;
 void drinkCreateTable();
 void drinkLoadListFromDb();
+
+void updateSteamGameList();
     
 }

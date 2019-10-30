@@ -124,6 +124,7 @@ CQEVENT(int32_t, __eventEnable, 0)() {
     QQME = CQ_getLoginQQ(ac);
     eat::foodCreateTable();
     eat::foodLoadListFromDb();
+    eat::updateSteamGameList();
     pee::peeCreateTable();
     pee::peeLoadFromDb();
 
@@ -144,6 +145,10 @@ CQEVENT(int32_t, __eventEnable, 0)() {
     timedEventQueue[0][0].push_back([&]() {
         for (auto& g : grp::groups)
             g.second.updateMembers();
+    });
+
+    timedEventQueue[0][0].push_back([&]() {
+        eat::updateSteamGameList();
     });
 
     timedEventQueue[pee::NEW_DAY_TIME_HOUR][pee::NEW_DAY_TIME_MIN].push_back([&]() {

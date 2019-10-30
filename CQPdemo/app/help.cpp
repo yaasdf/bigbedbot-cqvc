@@ -15,7 +15,7 @@ namespace help
     {
         std::stringstream ss;
         ss << "最后更新日期：" << __TIMESTAMP__ << std::endl <<
-            "帮助文档：https://github.com/yaasdf/bigbedbot-cqvc/tree/master/CQPdemo";
+            "帮助文档：https://github.com/yaasdf/bigbedbot-cqvc/blob/master/CQPdemo/README.md";
         return ss.str();
     }
 }
