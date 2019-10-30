@@ -5,6 +5,8 @@
 
 namespace steam
 {
+
+// Ordinary json parser tooks about 80MB+ RAM so I should do the things by hand.
 class SteamAppListParser
 {
 private:

@@ -4,6 +4,7 @@
 int steam::SteamAppListParser::parse(char* s)
 {
     if (!s) return 1;
+    games.clear();
     c_pointer = s;
 
     Estat prev_stat = Estat::IDLE;
