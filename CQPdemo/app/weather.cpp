@@ -279,7 +279,24 @@ command weather::weather_cn(const std::string& city)
             "湿度：" << args[3] << std::endl <<
             "PM2.5: " << args[4] << std::endl << 
             "PM10: " << args[5] << std::endl << 
-            "aqi: " << args[9];
+            "AQI: " << args[9];
+
+        int aqi = atoi(args[9].c_str());
+        if (0 <= aqi && aqi <= 50)
+            ss << " 一级（优）";
+        else if (51 <= aqi && aqi <= 100)
+            ss << " 二级（良）";
+        else if (101 <= aqi && aqi <= 150)
+            ss << " 三级（轻度污染）";
+        else if (151 <= aqi && aqi <= 200)
+            ss << " 四级（中度污染）";
+        else if (201 <= aqi && aqi <= 300)
+            ss << " 五级（重度污染）";
+        else if (301 <= aqi)
+            ss << " 六级（严重污染）";
+        else
+            ss << " undefined（？）";
+
         return ss.str();
     };
 
