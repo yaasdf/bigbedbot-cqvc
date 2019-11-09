@@ -204,6 +204,7 @@ const std::vector<event_type> EVENT_POOL{
 
     { 0.01,[](int64_t group, int64_t qq) { return EMOJI_HORN + "，傻逼"; } },
 
+    /*
     { 0.002,[](int64_t group, int64_t qq)
     {
         std::vector<unsigned> numbers;
@@ -276,6 +277,7 @@ const std::vector<event_type> EVENT_POOL{
         modifyCurrency(qq, plist[qq].currency);
         return "镜像药水，你的批被反过来了";
     } },
+        */
 
     { 0.005,[](int64_t group, int64_t qq) -> std::string
     {
@@ -308,6 +310,7 @@ const std::vector<event_type> EVENT_POOL{
         return "菠菜罚款单，你高强度菠菜被菜市场管理小组发现了，缴纳罚款"s + std::to_string(cost) + "批";
     } },
 
+        /*
     { 0.003,[](int64_t group, int64_t qq) -> std::string
     {
         plist[qq].air_pump_count = 5;
@@ -319,6 +322,7 @@ const std::vector<event_type> EVENT_POOL{
         plist[qq].air_ignore_count = 10;
         return "真空抽气机，10次抽卡内不出空气";
     } },
+    */
 
     { 0.01,[](int64_t group, int64_t qq) -> std::string
     {
@@ -440,9 +444,20 @@ command msgDispatcher(const char* msg)
     return c;
 }
 
+double event_max = 0.0;
+void calc_event_max()
+{
+    event_max = 0.0;
+    for (const auto& e : EVENT_POOL)
+    {
+        event_max += e.prob();
+    }
+}
+
 const event_type& draw_event(double p)
 {
-    if (p < 0.0 || p > 1.0) return EVENT_DEFAULT;
+    p = p * event_max;
+    if (p < 0.0 || p > event_max) return EVENT_DEFAULT;
     double totalp = 0;
     for (const auto& c : EVENT_POOL)
     {

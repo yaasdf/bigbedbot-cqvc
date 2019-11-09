@@ -43,7 +43,5 @@ public:
 };
 const event_type& draw_event(double p);
 const event_type& draw_event_chaos();
-
-
-
+void calc_event_max();
 }

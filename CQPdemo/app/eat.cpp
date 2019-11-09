@@ -34,6 +34,10 @@ steam::SteamAppListParser games;
 //std::vector<std::pair<long, std::string>> steamGameList;
 void updateSteamGameList()
 {
+#ifdef _DEBUG
+    return;
+#endif
+
     CURL *curl = curl_easy_init();
     if (!curl)
     {

@@ -110,6 +110,11 @@ Self-explanatory. 开一个[箱子](https://docs.qq.com/sheet/DU05RYmhVd2xCWExM?
 
 Changelog
 ===============
+20191109
+- Del: 事件[融合药水][镜像药水][混沌药水]
+- Del: 事件[高级气泵][真空抽气机]
+- Del: 事件[空气]
+
 20191030
 - Add: 玩什么
 

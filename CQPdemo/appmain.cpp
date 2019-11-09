@@ -137,6 +137,8 @@ CQEVENT(int32_t, __eventEnable, 0)() {
     std::thread(timedCommit, std::ref(eat::db)).detach();
     std::thread(timedCommit, std::ref(pee::db)).detach();
 
+    mnp::calc_event_max();
+
     {
         pee::daily_refresh_time = time(nullptr) - 60 * 60 * 24; // yesterday
         pee::daily_refresh_tm_auto = getLocalTime(TIMEZONE_HR, TIMEZONE_MIN);
