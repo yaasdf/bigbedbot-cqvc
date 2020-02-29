@@ -45,7 +45,7 @@ void updateSteamGameList()
     }
 
     curl_buffer curlbuf(8 * 1024 * 1024);   // 8MB
-    curl_easy_setopt(curl, CURLOPT_URL, "http://api.steampowered.com/ISteamApps/GetAppList/v0002/?key=STEAMKEY&format=json");
+    curl_easy_setopt(curl, CURLOPT_URL, "http://api.steampowered.com/ISteamApps/GetAppList/v0002/?format=json");
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &curlbuf);
 #ifdef _DEBUG
