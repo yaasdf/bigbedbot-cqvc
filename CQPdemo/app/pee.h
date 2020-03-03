@@ -698,8 +698,8 @@ const int MAX_STAMINA = 100;
 const int MAX_STAMINA = 10;
 #endif
 const int STAMINA_TIME = 30 * 60; // 30min
-inline std::map<int64_t, time_t> staminaRecoveryTime;
-inline std::map<int64_t, int> staminaExtra;
+inline std::map<int64_t, time_t> staminaRecoveryTime{};
+inline std::map<int64_t, int> staminaExtra{};
 
 ////////////////////////////////////////////////////////////////////////////////
 // 技能设定

@@ -89,6 +89,7 @@ int64_t stripAt(std::string& s)
             return std::stoll(s.substr(10, s.length() - 11));
         }
         catch (std::exception&) {
+			return 0;
             //ignore
         }
     }

@@ -864,7 +864,7 @@ void flushDailyTimep(bool autotriggered)
     remain_daily_bonus = DAILY_BONUS + extra_tomorrow;
     extra_tomorrow = 0;
 
-    broadcastMsg("每日批池刷新了；额");
+    broadcastMsg("每日批池刷新了；额", grp::Group::MASK_FLIPCOIN | grp::Group::MASK_ROULETTE | grp::Group::MASK_MONOPOLY);
     CQ_addLog(ac, CQLOG_DEBUG, "pee", std::to_string(daily_refresh_time).c_str());
 }
 

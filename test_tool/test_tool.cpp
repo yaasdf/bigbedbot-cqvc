@@ -5,7 +5,7 @@
 #include <csignal>
 #include <string>
 #include <Windows.h>
-#include "../CQPdemo/cqp.h"
+//#include "../CQPdemo/cqp.h"
 
 #define CMD_DEFAULT "\e[0m"
 #define CMD_BOLD "\e[1m"

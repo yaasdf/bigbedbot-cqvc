@@ -6,8 +6,7 @@
 *.user
 *.userosscache
 *.sln.docstates
-eat.db
-pee.db
+*.db
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

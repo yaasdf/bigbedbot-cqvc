@@ -194,7 +194,7 @@ void event_case::startEvent()
         event_case_tm = getLocalTime(TIMEZONE_HR, TIMEZONE_MIN);
         std::stringstream ss;
         ss << "限时活动已开始，这次是<" << pool_event.getType(type) << ">，每次收费" << pool_event.getTypeCost(type) << "批，请群员踊跃参加";
-        broadcastMsg(ss.str().c_str());
+        broadcastMsg(ss.str().c_str(), grp::Group::MASK_MONOPOLY);
     }
     else
     {
@@ -210,41 +210,7 @@ void event_case::stopEvent()
         auto event_case_time = time(nullptr);
         event_case_end_tm = getLocalTime(TIMEZONE_HR, TIMEZONE_MIN);
 
-        /*
-        std::map<int64_t, std::stringstream> msgbuf;
-        for (auto& [qq, data] : plist)
-        {
-            if (data.event_drop_count > 0)
-            {
-                auto& ss = msgbuf[qq];
-                ss << CQ_At(qq) << "获得" << data.event_drop_count << "个箱子掉落，开出了：";
-                while (data.event_drop_count--)
-                {
-                    int type = randInt(0, pool_drop.getTypeCount() - 1);
-                    auto dcase = pool_drop.draw(type);
-                    plist[qq].currency += dcase.worth;
-                    ss << "\n - " << pool_drop.caseFullName(dcase);
-                }
-            }
-        }
-        */
-
-        for (const auto& [group, cfg] : grp::groups)
-        {
-            std::stringstream ss;
-            ss << "限时活动已结束！";
-            /*
-            for (auto& [qq, data] : plist)
-            {
-                const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, qq, FALSE);
-                if (cqinfo && strlen(cqinfo) > 0 && msgbuf.find(qq) != msgbuf.end())
-                {
-                    ss << "\n" << msgbuf[qq].str();
-                }
-            }
-            */
-            CQ_sendGroupMsg(ac, group, ss.str().c_str());
-        }
+		broadcastMsg("限时活动已结束！", grp::Group::MASK_MONOPOLY);
     }
     else
     {

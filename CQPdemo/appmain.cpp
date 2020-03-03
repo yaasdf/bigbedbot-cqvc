@@ -127,6 +127,8 @@ CQEVENT(int32_t, __eventEnable, 0)() {
     eat::updateSteamGameList();
     pee::peeCreateTable();
     pee::peeLoadFromDb();
+	grp::CreateTable();
+	grp::LoadListFromDb();
 
     for (auto& g : grp::groups)
         g.second.updateMembers();
@@ -236,54 +238,100 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t msgId, int64_t fr
     }
 
     std::string buf;
+	bool handled = false;
+
+	// 群组命令
+	auto b = grp::msgDispatcher(msg);
+	if (b.func)
+	{
+		if (grp::groups.find(fromGroup) == grp::groups.end())
+		{
+			grp::newGroup(fromGroup);
+		}
+
+		buf = b.func(fromGroup, fromQQ, b.args, msg);
+		if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
+		handled = true;
+	}
+
+	if (grp::groups.find(fromGroup) == grp::groups.end())
+	{
+		return EVENT_IGNORE;
+	}
+	auto& gr = grp::groups[fromGroup];
+	using namespace grp;
 
     // 吃什么
-    auto c = eat::msgDispatcher(msg);
-    if (c.func)
-    {
-        buf = c.func(fromGroup, fromQQ, c.args, msg);
-        if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
-    }
+	if (gr.getFlag(Group::MASK_EAT))
+	{
+		auto c = eat::msgDispatcher(msg);
+		if (c.func)
+		{
+			buf = c.func(fromGroup, fromQQ, c.args, msg);
+			if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
+			handled = true;
+		}
+	}
 
     // 开箱
-    auto d = pee::msgDispatcher(msg);
-    if (d.func)
-    {
-        buf = d.func(fromGroup, fromQQ, d.args, msg);
-        if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
-    }
+	if (gr.getFlag(Group::MASK_MONOPOLY))
+	{
+		auto d = pee::msgDispatcher(msg);
+		if (d.func)
+		{
+			buf = d.func(fromGroup, fromQQ, d.args, msg);
+			if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
+			handled = true;
+		}
+	}
 
     // 禁烟跌坑
-    auto e = pee::smokeIndicator(msg);
-    if (e.func)
-    {
-        buf = e.func(fromGroup, fromQQ, e.args, msg);
-        if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
-    }
+	if (gr.getFlag(Group::MASK_SMOKE))
+	{
+		auto e = pee::smokeIndicator(msg);
+		if (e.func)
+		{
+			buf = e.func(fromGroup, fromQQ, e.args, msg);
+			if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
+			handled = true;
+		}
+	}
 
     // 
-    auto f = duel::msgDispatcher(msg);
-    if (f.func)
-    {
-        buf = f.func(fromGroup, fromQQ, f.args, msg);
-        if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
-    }
+	if (gr.getFlag(Group::MASK_ROULETTE))
+	{
+		auto f = duel::msgDispatcher(msg);
+		if (f.func)
+		{
+			buf = f.func(fromGroup, fromQQ, f.args, msg);
+			if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
+			handled = true;
+		}
+	}
 
     // fate
-    auto g = mnp::msgDispatcher(msg);
-    if (g.func)
-    {
-        buf = g.func(fromGroup, fromQQ, g.args, msg);
-        if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
-    }
+	if (gr.getFlag(Group::MASK_MONOPOLY))
+	{
+		auto g = mnp::msgDispatcher(msg);
+		if (g.func)
+		{
+			buf = g.func(fromGroup, fromQQ, g.args, msg);
+			if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
+			handled = true;
+		}
+	}
 
     // event_case
-    auto h = event_case::msgDispatcher(msg);
-    if (h.func)
-    {
-        buf = h.func(fromGroup, fromQQ, h.args, msg);
-        if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
-    }
+	if (gr.getFlag(Group::MASK_MONOPOLY))
+	{
+		auto h = event_case::msgDispatcher(msg);
+		if (h.func)
+		{
+			buf = h.func(fromGroup, fromQQ, h.args, msg);
+			if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
+			handled = true;
+		}
+	}
 
     // event_case
     auto i = weather::msgDispatcher(msg);
@@ -291,6 +339,7 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t msgId, int64_t fr
     {
         buf = i.func(fromGroup, fromQQ, i.args, msg);
         if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
+		handled = true;
     }
 
     // update smoke status 
@@ -307,7 +356,7 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t msgId, int64_t fr
                 pee::smokeGroups.erase(g);
         }
     }
-    return (c.func || d.func || e.func || f.func || g.func || h.func || i.func) ? EVENT_BLOCK : EVENT_IGNORE;
+    return handled ? EVENT_BLOCK : EVENT_IGNORE;
 	//return EVENT_BLOCK; //关于返回值说明, 见“_eventPrivateMsg”函数
 }
 

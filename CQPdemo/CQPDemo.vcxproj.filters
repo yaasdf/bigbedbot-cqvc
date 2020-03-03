@@ -113,9 +113,6 @@
     <ClCompile Include="app\group.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="app\private\groupid.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

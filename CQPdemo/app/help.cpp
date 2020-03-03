@@ -8,7 +8,7 @@ namespace help
         std::stringstream ss;
         ss << "bot»îÁË£¡";
         ss << help();
-        return ss.str();
+		return ss.str();
     }
 
     std::string help()
