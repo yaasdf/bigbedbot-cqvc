@@ -279,14 +279,14 @@ int steam::SteamAppListParser::proc_PAIR_FINISH()
         g.name = utf82gbk(value);
         g.name.shrink_to_fit();
 
-		if (!g.name.find("Demo") &&
-			g.name.find("Pack") &&
-			g.name.find("Trial") &&
-			g.name.find("DLC") &&
-			g.name.find("Downloadable Content") &&
-			g.name.find("Demo") &&
-			g.name.find("test") &&
-			g.name.find("Soundtrack"))
+		if (!(g.name.find("Demo") ||
+			g.name.find("Pack") ||
+			g.name.find("Trial") ||
+			g.name.find("DLC") ||
+			g.name.find("Downloadable Content") ||
+			g.name.find("Demo") ||
+			g.name.find("test") ||
+			g.name.find("Soundtrack")))
 		{
 			games.push_back(std::move(g));
 		}

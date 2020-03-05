@@ -199,7 +199,7 @@ command msgDispatcher(const char* msg)
     case commands::ÍæÊ²Ã´:
         c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw) -> std::string
         {
-            if (games.available)
+            if (games.available && !games.games.empty())
             {
                 int idx = randInt(0, games.games.size());
                 std::stringstream ss;
