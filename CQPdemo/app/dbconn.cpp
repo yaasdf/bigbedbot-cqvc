@@ -38,22 +38,6 @@ std::vector<std::vector<std::any>> SQLite::query(const char* zsql, size_t retSiz
     sqlite3_finalize(stmt);
     return ret;
 }
-int SQLite::exec(const char* zsql)
-{
-    sqlite3_stmt* stmt = nullptr;
-    const char* pzTail;
-    int ret;
-    if (ret = sqlite3_prepare_v3(_db, zsql, strlen(zsql), 0, &stmt, &pzTail))
-        return ret;
-    if ((ret = sqlite3_step(stmt)) != SQLITE_OK && ret != SQLITE_ROW && ret != SQLITE_DONE)
-    {
-        char msg[1024];
-        sprintf_s(msg, "%s %s: %s", "exec", zsql, errmsg());
-        CQ_addLog(ac, CQLOG_ERROR, logGrp, msg);
-    }
-    sqlite3_finalize(stmt);
-    return SQLITE_OK;
-}
 std::vector<std::vector<std::any>> SQLite::query(const char* zsql, size_t retSize, std::initializer_list<std::any> args)
 {
     size_t argc = args.size();
@@ -100,6 +84,23 @@ std::vector<std::vector<std::any>> SQLite::query(const char* zsql, size_t retSiz
     sqlite3_finalize(stmt);
     return ret;
 }
+
+int SQLite::exec(const char* zsql)
+{
+	sqlite3_stmt* stmt = nullptr;
+	const char* pzTail;
+	int ret;
+	if (ret = sqlite3_prepare_v3(_db, zsql, strlen(zsql), 0, &stmt, &pzTail))
+		return ret;
+	if ((ret = sqlite3_step(stmt)) != SQLITE_OK && ret != SQLITE_ROW && ret != SQLITE_DONE)
+	{
+		char msg[1024];
+		sprintf_s(msg, "%s %s: %s", "exec", zsql, errmsg());
+		CQ_addLog(ac, CQLOG_ERROR, logGrp, msg);
+	}
+	sqlite3_finalize(stmt);
+	return SQLITE_OK;
+}
 int SQLite::exec(const char* zsql, std::initializer_list<std::any> args)
 {
     sqlite3_stmt* stmt = nullptr;
@@ -130,6 +131,7 @@ int SQLite::exec(const char* zsql, std::initializer_list<std::any> args)
     sqlite3_finalize(stmt);
     return SQLITE_OK;
 }
+
 void SQLite::transactionStart()
 {
     if (!inTransaction)

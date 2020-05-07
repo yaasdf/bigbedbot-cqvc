@@ -18,8 +18,8 @@ public:
     SQLite(const char* path, const char* log);
     ~SQLite();
     std::vector<std::vector<std::any>> query(const char* stmt, size_t retSize);
-    int exec(const char* zsql);
     std::vector<std::vector<std::any>> query(const char* stmt, size_t retSize, std::initializer_list<std::any> args);
+	int exec(const char* zsql);
     int exec(const char* zsql, std::initializer_list<std::any> args);
     void transactionStart();
     void transactionStop();

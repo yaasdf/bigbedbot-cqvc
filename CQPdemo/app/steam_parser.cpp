@@ -280,6 +280,7 @@ int steam::SteamAppListParser::proc_PAIR_FINISH()
         g.name.shrink_to_fit();
 
 		if (!(g.name.find("Demo") != g.name.npos ||
+			g.name.find("Bundle") != g.name.npos ||
 			g.name.find("Pack") != g.name.npos ||
 			g.name.find("Trial") != g.name.npos ||
 			g.name.find("DLC") != g.name.npos ||

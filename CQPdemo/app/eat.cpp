@@ -58,28 +58,39 @@ void updateSteamGameList()
     switch (ret)
     {
     case CURLE_OK:
-        switch (games.parse(curlbuf.content))
-        {
-        case 2:
-            CQ_addLog(ac, CQLOG_WARNING, "play", "parse error");
-            break;
+	{
+		steam::SteamAppListParser gamestmp;
+		switch (gamestmp.parse(curlbuf.content))
+		{
+		case 0:
+			games.games.clear();
+			games = std::move(gamestmp);
+			char msg[128];
+			sprintf(msg, "added %u games", games.games.size());
+			CQ_addLog(ac, CQLOG_DEBUG, "play", msg);
+			break;
 
-        case 3:
-            CQ_addLog(ac, CQLOG_WARNING, "play", "parsing fsm state error");
-            break;
+		case 2:
+			CQ_addLog(ac, CQLOG_WARNING, "play", "parse error");
+			break;
 
-        case 4:
-            CQ_addLog(ac, CQLOG_WARNING, "play", "unexpected end of brace");
-            break;
+		case 3:
+			CQ_addLog(ac, CQLOG_WARNING, "play", "parsing fsm state error");
+			break;
 
-        case 5:
-            CQ_addLog(ac, CQLOG_WARNING, "play", "deadloop detected");
-            break;
+		case 4:
+			CQ_addLog(ac, CQLOG_WARNING, "play", "unexpected end of brace");
+			break;
 
-        default:
-            break;
-        }
-        break;
+		case 5:
+			CQ_addLog(ac, CQLOG_WARNING, "play", "deadloop detected");
+			break;
+
+		default:
+			break;
+		}
+	}
+		break;
 
     default:
     {
@@ -90,9 +101,6 @@ void updateSteamGameList()
         break;
     }
 
-    char msg[128];
-    sprintf(msg, "added %u games", games.games.size());
-    CQ_addLog(ac, CQLOG_DEBUG, "play", msg);
 }
 
 std::string food::to_string(int64_t group)
@@ -157,13 +165,165 @@ inline int addFood(food& f)
         CQ_addLog(ac, CQLOG_ERROR, "eat", ss.str().c_str());
         return 1;
     }
-    foodList.push_back(f);
+    //foodList.push_back(f);
     return 0;
 }
 
-inline food& getFood()
+int getFood(food& f)
 {
-    return foodList[randInt(0, foodList.size() - 1)];
+	const char query[] = "SELECT * FROM food ORDER BY RANDOM() limit 1";
+	auto list = db.query(query, 4);
+	if (list.empty()) return 1;
+	else
+	{
+		auto &row = list[0];
+
+		f.name = utf82gbk(std::any_cast<std::string>(row[1]));
+		if (row[2].has_value())
+		{
+			f.offererType = f.NAME;
+			f.offerer.name = utf82gbk(std::any_cast<std::string>(row[2]));
+		}
+		else if (row[3].has_value())
+		{
+			f.offererType = f.QQ;
+			f.offerer.qq = std::any_cast<int64_t>(row[3]);
+		}
+		else
+			f.offererType = f.ANONYMOUS;
+	}
+
+	return 0;
+
+    //return foodList[randInt(0, foodList.size() - 1)];
+}
+
+int getFood10(food(&f)[10])
+{
+	const char query[] = "SELECT * FROM food ORDER BY RANDOM() limit 10";
+	auto list = db.query(query, 4);
+	size_t idx = 0;
+	if (list.empty()) return 0;
+	else
+	{
+		for (auto &row : list)
+		{
+			f[idx].name = utf82gbk(std::any_cast<std::string>(row[1]));
+			if (row[2].has_value())
+			{
+				f[idx].offererType = f[idx].NAME;
+				f[idx].offerer.name = utf82gbk(std::any_cast<std::string>(row[2]));
+			}
+			else if (row[3].has_value())
+			{
+				f[idx].offererType = f[idx].QQ;
+				f[idx].offerer.qq = std::any_cast<int64_t>(row[3]);
+			}
+			else
+				f[idx].offererType = f[idx].ANONYMOUS;
+
+			idx++;
+		}
+	}
+
+	return idx;
+
+	//return foodList[randInt(0, foodList.size() - 1)];
+}
+
+
+int delFood(const std::string& name)
+{
+	const char query[] = "DELETE FROM food WHERE name=?";
+	int ret = db.exec(query, { gbk2utf8(name) });
+	if (ret != SQLITE_OK)
+	{
+		std::stringstream ss;
+		ss << "delFood: " << db.errmsg() << ", " << gbk2utf8(name);
+		CQ_addLog(ac, CQLOG_ERROR, "eat", ss.str().c_str());
+		return 1;
+	}
+	return 0;
+}
+
+inline int addDrink(drink& d)
+{
+	const char query[] = "INSERT INTO drink(name, qq, grp) VALUES (?,?,?)";
+	int ret;
+	auto nameutf8 = gbk2utf8(d.name);
+	ret = db.exec(query, { nameutf8, d.qq, d.group });
+	if (ret != SQLITE_OK)
+	{
+		std::stringstream ss;
+		ss << "addDrink: " << db.errmsg() << ", " << d.name;
+		CQ_addLog(ac, CQLOG_ERROR, "drink", ss.str().c_str());
+		return 1;
+	}
+	//foodList.push_back(f);
+	return 0;
+}
+
+inline int64_t haveFood(const std::string& name = "")
+{
+	if (!name.empty())
+	{
+		const char query[] = "SELECT COUNT(*) FROM food WHERE name=?";
+		auto list = db.query(query, 1, { gbk2utf8(name) });
+		return list.empty()? 0 : std::any_cast<int64_t>(list[0][0]);
+	}
+	else
+	{
+		const char query[] = "SELECT COUNT(*) FROM food";
+		auto list = db.query(query, 1);
+		return list.empty() ? 0 : std::any_cast<int64_t>(list[0][0]);
+	}
+}
+
+int getDrink(drink& f)
+{
+	const char query[] = "SELECT * FROM drink ORDER BY RANDOM() limit 1";
+	auto list = db.query(query, 4);
+	if (list.empty()) return 1;
+	else
+	{
+		auto &row = list[0];
+
+		f.name = utf82gbk(std::any_cast<std::string>(row[1]));
+		f.qq = std::any_cast<int64_t>(row[2]);
+		f.group = std::any_cast<int64_t>(row[3]);
+	}
+
+	return 0;
+}
+
+int delDrink(const std::string& name)
+{
+	const char query[] = "DELETE FROM drink WHERE name=?";
+	int ret = db.exec(query, { gbk2utf8(name) });
+	if (ret != SQLITE_OK)
+	{
+		std::stringstream ss;
+		ss << "delDrink: " << db.errmsg() << ", " << gbk2utf8(name);
+		CQ_addLog(ac, CQLOG_ERROR, "drink", ss.str().c_str());
+		return 1;
+	}
+	return 0;
+}
+
+inline int64_t haveDrink(const std::string& name = "")
+{
+	if (!name.empty())
+	{
+		const char query[] = "SELECT COUNT(*) FROM drink WHERE name=?";
+		auto list = db.query(query, 1, { gbk2utf8(name) });
+		return list.empty() ? 0 : std::any_cast<int64_t>(list[0][0]);
+	}
+	else
+	{
+		const char query[] = "SELECT COUNT(*) FROM drink";
+		auto list = db.query(query, 1);
+		return list.empty() ? 0 : std::any_cast<int64_t>(list[0][0]);
+	}
 }
 
 
@@ -182,18 +342,25 @@ command msgDispatcher(const char* msg)
     case commands::吃什么:
         c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw) -> std::string
         {
-            if (foodList.empty()) return "無";
             std::stringstream ss;
             ss << CQ_At(qq);
             ss << "，你阔以选择";
-            ss << getFood().to_string(group);
+			food f;
+			if (getFood(f)) return "無";
+            ss << f.to_string(group);
             return ss.str();
         };
         break;
     case commands::喝什么:
         c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw) -> std::string
         {
-            return "不知道";
+			std::stringstream ss;
+			ss << CQ_At(qq);
+			ss << "，你阔以选择";
+			drink d;
+			if (getDrink(d)) return "無";
+			ss << d.name;
+			return ss.str();
         };
         break;
     case commands::玩什么:
@@ -217,12 +384,17 @@ command msgDispatcher(const char* msg)
     case commands::吃什么十连:
         c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw) -> std::string
         {
-            if (foodList.empty()) return "無";
             std::stringstream ss;
             ss << CQ_At(qq);
             ss << "，你阔以选择：\n";
-            for (size_t i = 0; i < 10; ++i)
-                ss << " - " << getFood().to_string(group) << "\n";
+			if (!haveFood()) return "無";
+
+			food f[10];
+			int size = getFood10(f);
+			for (size_t i = 0; i < size; ++i)
+			{
+				ss << " - " << f[i].to_string(group) << "\n";
+			}
             ss << "吃东西还十连，祝您撑死，哈";
             return ss.str();
         };
@@ -241,11 +413,8 @@ command msgDispatcher(const char* msg)
             //TODO filter
 
             // check repeat
-            for (auto& f : foodList)
-            {
-                if (f.name == r)
-                    return f.name + "已经有了！！！";
-            }
+			if (haveFood(r))
+                return r + "已经有了！！！";
 
             food f;
             f.name = r;
@@ -260,13 +429,100 @@ command msgDispatcher(const char* msg)
             return ss.str();
         };
         break;
+	case commands::删菜:
+		c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw) -> std::string
+		{
+			if (isGroupManager(group, qq))
+			{
+				if (args.size() == 1) return "空气不能删的";
+
+				std::string r(raw);
+				r = strip(r.substr(5));    // 加菜：BC D3 / B2 CB / 20
+				if (raw.empty()) return "空气不能删的";
+				if (r == "空气") return "空气不能删的";
+				if (r.length() > 30) return "你就是飞天意面神教人？";
+
+				int count = haveFood(r);
+				if (count)
+				{
+					delFood(r);
+				}
+
+				std::stringstream ss;
+				ss << "已删除" << count << "条" << r;
+				return ss.str();
+			}
+			return "你删个锤子？";
+		};
+		break;
+	case commands::加饮料:
+		c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw) -> std::string
+		{
+			if (!isGroupOwner(group, qq)) return "你加个锤子？";
+
+			if (args.size() == 1) return "空气不能喝的";
+
+			std::string r(raw);
+			r = strip(r.substr(7));    // 加菜：BC D3 / B2 CB / 20
+			if (raw.empty()) return "空气不能喝的";
+			if (r == "空气") return "空气不能喝的";
+			if (r.length() > 30) return "你就是飞天意面神教人？";
+
+			//TODO filter
+
+			// check repeat
+			if (haveDrink(r))
+				return r + "已经有了！！！";
+
+			drink d;
+			d.name = r;
+			d.qq = qq;
+			d.group = group;
+			if (addDrink(d))
+			{
+				return "不准加";
+			}
+			std::stringstream ss;
+			ss << "已添加" << d.name;
+			return ss.str();
+		};
+		break;
+	case commands::删饮料:
+		c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw) -> std::string
+		{
+			if (!isGroupOwner(group, qq)) return "你加个锤子？";
+
+			if (args.size() == 1) return "空气不能删的";
+
+			std::string r(raw);
+			r = strip(r.substr(5));    // 加菜：BC D3 / B2 CB / 20
+			if (raw.empty()) return "空气不能删的";
+			if (r == "空气") return "空气不能删的";
+			if (r.length() > 30) return "你就是飞天意面神教人？";
+
+			int count = haveDrink(r);
+			if (count)
+			{
+				delDrink(r);
+			}
+
+			std::stringstream ss;
+			ss << "已删除" << count << "条" << r;
+			return ss.str();
+		};
+		break;
     case commands::菜单:
         c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw) -> std::string
         {
-            if (foodList.empty()) return "无";
+			int count = haveFood();
+            if (!count) return "无";
+
+			return "菜单暂时不可用！";
+			/*
             // defuault: last 9 entries
-            size_t range_min = (foodList.size() <= 9) ? 0 : (foodList.size() - 9);
-            size_t range_max = (foodList.size() <= 9) ? (foodList.size() - 1) : (range_min + 8);
+            size_t range_min = (count <= 9) ? 0 : (count - 9);
+            size_t range_max = (count <= 9) ? (count - 1) : (range_min + 8);
+
 
             // arg[1] is range_mid
             if (args.size() > 1 && foodList.size() > 9) try
@@ -300,6 +556,7 @@ command msgDispatcher(const char* msg)
             }
 
             return ret.str();
+			*/
         };
         break;
     case commands::删库:
@@ -315,7 +572,7 @@ command msgDispatcher(const char* msg)
                 CQ_addLog(ac, CQLOG_ERROR, "eat", db.errmsg());
                 return db.errmsg();
             }
-            foodList.clear();
+            //foodList.clear();
             return "drop了";
         };
         break;
@@ -329,13 +586,13 @@ void foodCreateTable()
     if (db.exec(
         "CREATE TABLE IF NOT EXISTS food( \
             id    INTEGER PRIMARY KEY AUTOINCREMENT, \
-            name  TEXT            NOT NULL,      \
-            adder TEXT,                          \
-            qq    INTEGER                        \
+            name  TEXT    NOT NULL,       \
+            adder TEXT,                   \
+            qq    INTEGER                 \
          )") != SQLITE_OK)
         CQ_addLog(ac, CQLOG_ERROR, "eat", db.errmsg());
 }
-
+/*
 void foodLoadListFromDb()
 {
     auto list = db.query("SELECT * FROM food", 4);
@@ -360,6 +617,20 @@ void foodLoadListFromDb()
     char msg[128];
     sprintf(msg, "added %u foods", foodList.size());
     CQ_addLog(ac, CQLOG_DEBUG, "eat", msg);
+}
+*/
+
+
+void drinkCreateTable()
+{
+	if (db.exec(
+		"CREATE TABLE IF NOT EXISTS drink( \
+            id    INTEGER PRIMARY KEY AUTOINCREMENT, \
+            name  TEXT    NOT NULL,        \
+            qq    INTEGER,                 \
+            grp   INTEGER                  \
+         )") != SQLITE_OK)
+		CQ_addLog(ac, CQLOG_ERROR, "drink", db.errmsg());
 }
 
 }

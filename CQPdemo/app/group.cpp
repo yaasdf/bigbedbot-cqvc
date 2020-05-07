@@ -156,42 +156,34 @@ command msgDispatcher(const char* msg)
 		c.args = query;
 		c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw)->std::string
 		{
-			const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, qq, TRUE);
-			if (cqinfo && strlen(cqinfo) > 0)
+			if (isGroupManager(group, qq))
 			{
-				std::string decoded = base64_decode(std::string(cqinfo));
-				if (!decoded.empty())
+				auto subcmd = args[0].substr(4);
+				auto& g = groups[group];
+				if (subcmd == "吃什么")
 				{
-					if (getPermissionFromGroupInfoV2(decoded.c_str()) >= 2)
-					{
-						auto subcmd = args[0].substr(4);
-						auto& g = groups[group];
-						if (subcmd == "吃什么")
-						{
-							g.setFlag(Group::MASK_EAT);
-							return "本群已开启吃什么";
-						}
-						else if (subcmd == "翻批")
-						{
-							g.setFlag(Group::MASK_FLIPCOIN);
-							return "本群已开启翻批";
-						}
-						else if (subcmd == "摇号")
-						{
-							g.setFlag(Group::MASK_ROULETTE);
-							return "本群已开启摇号";
-						}
-						else if (subcmd == "抽卡")
-						{
-							g.setFlag(Group::MASK_MONOPOLY);
-							return "本群已开启抽卡/开箱";
-						}
-						else if (subcmd == "禁烟")
-						{
-							g.setFlag(Group::MASK_SMOKE);
-							return "本群已开启禁烟";
-						}
-					}
+					g.setFlag(Group::MASK_EAT);
+					return "本群已开启吃什么";
+				}
+				else if (subcmd == "翻批")
+				{
+					g.setFlag(Group::MASK_FLIPCOIN);
+					return "本群已开启翻批";
+				}
+				else if (subcmd == "摇号")
+				{
+					g.setFlag(Group::MASK_ROULETTE);
+					return "本群已开启摇号";
+				}
+				else if (subcmd == "抽卡")
+				{
+					g.setFlag(Group::MASK_MONOPOLY);
+					return "本群已开启抽卡/开箱";
+				}
+				else if (subcmd == "禁烟")
+				{
+					g.setFlag(Group::MASK_SMOKE);
+					return "本群已开启禁烟";
 				}
 			}
 			return "你开个锤子？";
@@ -202,42 +194,34 @@ command msgDispatcher(const char* msg)
 		c.args = query;
 		c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw)->std::string
 		{
-			const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, qq, TRUE);
-			if (cqinfo && strlen(cqinfo) > 0)
+			if (isGroupManager(group, qq))
 			{
-				std::string decoded = base64_decode(std::string(cqinfo));
-				if (!decoded.empty())
+				auto subcmd = args[0].substr(4);
+				auto& g = groups[group];
+				if (subcmd == "吃什么")
 				{
-					if (getPermissionFromGroupInfoV2(decoded.c_str()) >= 2)
-					{
-						auto subcmd = args[0].substr(4);
-						auto& g = groups[group];
-						if (subcmd == "吃什么")
-						{
-							g.setFlag(Group::MASK_EAT, false);
-							return "本群已关闭吃什么";
-						}
-						else if (subcmd == "翻批")
-						{
-							g.setFlag(Group::MASK_FLIPCOIN, false);
-							return "本群已关闭翻批";
-						}
-						else if (subcmd == "摇号")
-						{
-							g.setFlag(Group::MASK_ROULETTE, false);
-							return "本群已关闭摇号";
-						}
-						else if (subcmd == "抽卡")
-						{
-							g.setFlag(Group::MASK_MONOPOLY, false);
-							return "本群已关闭抽卡/开箱";
-						}
-						else if (subcmd == "禁烟")
-						{
-							g.setFlag(Group::MASK_SMOKE, false);
-							return "本群已关闭禁烟";
-						}
-					}
+					g.setFlag(Group::MASK_EAT, false);
+					return "本群已关闭吃什么";
+				}
+				else if (subcmd == "翻批")
+				{
+					g.setFlag(Group::MASK_FLIPCOIN, false);
+					return "本群已关闭翻批";
+				}
+				else if (subcmd == "摇号")
+				{
+					g.setFlag(Group::MASK_ROULETTE, false);
+					return "本群已关闭摇号";
+				}
+				else if (subcmd == "抽卡")
+				{
+					g.setFlag(Group::MASK_MONOPOLY, false);
+					return "本群已关闭抽卡/开箱";
+				}
+				else if (subcmd == "禁烟")
+				{
+					g.setFlag(Group::MASK_SMOKE, false);
+					return "本群已关闭禁烟";
 				}
 			}
 			return "你关个锤子？";

@@ -123,7 +123,8 @@ CQEVENT(int32_t, __eventEnable, 0)() {
 	enabled = true;
     QQME = CQ_getLoginQQ(ac);
     eat::foodCreateTable();
-    eat::foodLoadListFromDb();
+	eat::drinkCreateTable();
+    //eat::foodLoadListFromDb();
     eat::updateSteamGameList();
     pee::peeCreateTable();
     pee::peeLoadFromDb();
@@ -239,6 +240,19 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t msgId, int64_t fr
 
     std::string buf;
 	bool handled = false;
+
+	if (strstr(msg, "!roll") == msg || strstr(msg, "/roll") == msg)
+	{
+		auto query = msg2args(msg);
+		int val = 100;
+		if (query.size() > 1)
+		{
+			val = atoi(query[1].c_str());
+			if (val < 0) val = 100;
+		}
+		CQ_sendGroupMsg(ac, fromGroup, std::to_string(randInt(0, val)).c_str());
+		return EVENT_BLOCK;
+	}
 
 	// Èº×éÃüÁî
 	auto b = grp::msgDispatcher(msg);
@@ -584,4 +598,32 @@ std::string getCard(int64_t group, int64_t qq)
         if (qqname.empty()) qqname = CQ_At(qq);
         return qqname;
     }
+}
+
+bool isGroupManager(int64_t group, int64_t qq)
+{
+	const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, qq, TRUE);
+	if (cqinfo && strlen(cqinfo) > 0)
+	{
+		std::string decoded = base64_decode(std::string(cqinfo));
+		if (!decoded.empty())
+		{
+			return (getPermissionFromGroupInfoV2(decoded.c_str()) >= 2);
+		}
+	}
+	return false;
+}
+
+bool isGroupOwner(int64_t group, int64_t qq)
+{
+	const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, qq, TRUE);
+	if (cqinfo && strlen(cqinfo) > 0)
+	{
+		std::string decoded = base64_decode(std::string(cqinfo));
+		if (!decoded.empty())
+		{
+			return (getPermissionFromGroupInfoV2(decoded.c_str()) >= 3);
+		}
+	}
+	return false;
 }

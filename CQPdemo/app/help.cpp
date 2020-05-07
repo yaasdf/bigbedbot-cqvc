@@ -1,6 +1,7 @@
 #include "help.h"
 #include <sstream>
 #include <algorithm>
+
 namespace help
 {
     std::string boot_info()

@@ -78,3 +78,6 @@ inline std::string CQ_At(int64_t qq)
     using namespace std::string_literals;
     return "[CQ:at,qq="s + std::to_string(qq) + "]"s;
 }
+
+bool isGroupManager(int64_t group, int64_t qq);
+bool isGroupOwner(int64_t group, int64_t qq);

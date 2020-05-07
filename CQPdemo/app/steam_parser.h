@@ -21,7 +21,7 @@ private:
         VALUE_QUOTE,
         VALUE_RIGHT,
         PAIR_FINISH,
-    } stat;
+    } stat = Estat::IDLE;
     int brace_counter = 0;
 
     char* c_pointer = NULL;
@@ -40,7 +40,7 @@ public:
     std::vector<game> games;
     bool available = false;
 
-public:
+public:	
     int parse(char* s);
     int proc_IDLE();
     int proc_KEY_LEFT();

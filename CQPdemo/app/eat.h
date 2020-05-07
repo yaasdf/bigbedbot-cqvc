@@ -15,6 +15,9 @@ enum class commands: size_t {
     玩什么,
     吃什么十连,
     加菜,
+	删菜,
+	加饮料,
+	删饮料,
     菜单,
     删库,
 };
@@ -26,6 +29,10 @@ inline std::map<std::string, commands> commands_str
     {"玩什么", commands::玩什么},
     {"吃什么十连", commands::吃什么十连},
     {"加菜", commands::加菜},
+	{"减菜", commands::删菜},
+	{"删菜", commands::删菜},
+	{"加饮料", commands::加饮料},
+	{"删饮料", commands::删饮料},
     {"菜单", commands::菜单},
     //{"drop", commands::删库},
 };
@@ -50,18 +57,18 @@ struct food
     struct { std::string name; int64_t qq; } offerer;
     std::string to_string(int64_t group = 0);
 };
-inline std::vector<food> foodList;
+//inline std::vector<food> foodList;
 void foodCreateTable();
-void foodLoadListFromDb();
+//void foodLoadListFromDb();
 
 struct drink
 {
     std::string name;
-    int price_d2;
+	int64_t qq;
+	int64_t group;
 };
 inline std::vector<drink> drinkList;
 void drinkCreateTable();
-void drinkLoadListFromDb();
 
 void updateSteamGameList();
     
