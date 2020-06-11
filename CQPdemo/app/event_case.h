@@ -57,6 +57,7 @@ struct command
 inline std::map<std::string, commands> commands_str
 {
     {"活动开箱", commands::开箱},
+    {"活動開箱", commands::开箱}  //繁體化
 };
 command msgDispatcher(const char* msg);
 

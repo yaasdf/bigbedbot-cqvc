@@ -25,15 +25,25 @@ enum class commands: size_t {
 inline std::map<std::string, commands> commands_str
 {
     {"吃什么", commands::吃什么},
+    {"吃什麼", commands::吃什么},   //繁體化
     {"喝什么", commands::喝什么},
+    {"喝什麼", commands::喝什么},   //繁體化
     {"玩什么", commands::玩什么},
+    {"玩什麼", commands::玩什么},   //繁體化
     {"吃什么十连", commands::吃什么十连},
+    {"吃什麼十連", commands::吃什么十连},   //繁體化
     {"加菜", commands::加菜},
+    {"加菜", commands::加菜},   //繁體化
 	{"减菜", commands::删菜},
+    {"減菜", commands::删菜},   //繁體化
 	{"删菜", commands::删菜},
+    {"刪菜", commands::删菜},   //繁體化
 	{"加饮料", commands::加饮料},
+    {"加飲料", commands::加饮料},   //繁體化
 	{"删饮料", commands::删饮料},
+    {"刪飲料", commands::删饮料},   //繁體化
     {"菜单", commands::菜单},
+    {"菜單", commands::菜单},   //繁體化
     //{"drop", commands::删库},
 };
 

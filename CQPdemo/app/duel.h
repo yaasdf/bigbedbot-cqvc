@@ -28,11 +28,15 @@ enum class commands : size_t {
 inline std::map<std::string, commands> commands_str
 {
     {"开始翻批", commands::flipcoin},
-    {"正", commands::正},
-    {"反", commands::反},
+    {"開始翻批", commands::flipcoin},   //繁體化
+    {"正", commands::正},  //簡體繁體一樣
+    {"反", commands::反},  //簡體繁體一樣
     {"开始摇号", commands::roulette},
+    {"開始搖號", commands::roulette},  //繁體化
     {"摇号", commands::摇号},
-    {"摇", commands::摇号}
+    {"搖號", commands::摇号},  //繁體化
+    {"摇", commands::摇号},
+    {"搖", commands::摇号}  //繁體化
 };
 
 typedef std::function<std::string(::int64_t, ::int64_t, std::vector<std::string>&, const char*)> callback;

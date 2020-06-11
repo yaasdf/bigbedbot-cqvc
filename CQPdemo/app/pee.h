@@ -46,25 +46,43 @@ struct command
 inline std::map<std::string, commands> commands_str
 {
     {"开通", commands::开通提示},
+    {"開通", commands::开通提示},  //繁體化
     {"开通菠菜", commands::开通提示},
+    {"開通菠菜", commands::开通提示},  //繁體化
     {"给我开通菠菜", commands::开通提示},
+    {"給我開通菠菜", commands::开通提示},  //繁體化
     {"注册", commands::开通提示},
+    {"註冊", commands::开通提示},  //繁體化
     {"注册菠菜", commands::开通提示},
+    {"註冊菠菜", commands::开通提示},  //繁體化
     {"我要注册菠菜", commands::开通提示},
+    {"我要註冊菠菜", commands::开通提示},  //繁體化
     {"我要开通菠菜", commands::开通},
+    {"我要開通菠菜", commands::开通},  //繁體化
     {"余额", commands::余额},
-    {"禁言", commands::禁烟},
+    {"餘額", commands::余额},  //繁體化
+    {"禁言", commands::禁烟},  //簡體繁體一樣
     {"禁烟", commands::禁烟},
-    {"解", commands::解禁},
+    {"禁菸", commands::禁烟},  //繁體化
+    {"解", commands::解禁},  //簡體繁體一樣
     {"领批", commands::领批},
+    {"領批", commands::领批},  //繁體化
     //{"无中生批", commands::生批},
     //{"加批", commands::生批},
     //{"生批", commands::生批},
     {"开箱", commands::开箱},
+    {"開箱", commands::开箱},  //繁體化
     {"开箱十连", commands::开箱10},
+    {"開箱十連", commands::开箱10},  //繁體化
     {"开黄箱", commands::开黄箱},
+    {"開黃箱", commands::开黄箱},  //繁體化
     {"开红箱", commands::开红箱},
+    {"開紅箱", commands::开红箱},  //繁體化
     {"开箱梭哈", commands::开箱endless},
+    {"开箱照破", commands::开箱endless},  //梭哈在FF14的翻译是[照破]
+    {"開箱梭哈", commands::开箱endless},  //繁體化
+    {"開箱照破", commands::开箱endless},  //繁體化
+
 };
 
 command smokeIndicator(const char* msg);

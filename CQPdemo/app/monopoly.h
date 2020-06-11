@@ -15,7 +15,7 @@ enum class commands : size_t {
 };
 
 inline std::map<std::string, commands> commands_str{
-    {"³é¿¨", commands::³é¿¨},
+    {"³é¿¨", commands::³é¿¨}
 };
 
 typedef std::function<std::string(::int64_t, ::int64_t, std::vector<std::string>&, const char*)> callback;
