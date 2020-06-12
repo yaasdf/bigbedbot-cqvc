@@ -231,7 +231,7 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t msgId, int64_t fr
     
     if (time(NULL) <= banTime_me) return EVENT_IGNORE;
 
-    if (!strcmp(msg, "°ïÖú"))
+    if (!strcmp(msg, "°ïÖú") || !strcmp(msg, "ŽÍÖú"))
     {
         std::string help = help::help();
         CQ_sendGroupMsg(ac, fromGroup, help.c_str());

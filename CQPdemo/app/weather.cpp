@@ -51,7 +51,7 @@ command weather::msgDispatcher(const char* msg)
         args = newargs;
     }
 
-    if (args[0] != "天气" && args[0] != "weather" || args.size() <= 1)
+    if ((args[0] != "天气" && args[0] != "天氣") && args[0] != "weather" || args.size() <= 1)
         return command();
 
     if (inQuery)
@@ -64,7 +64,7 @@ command weather::msgDispatcher(const char* msg)
         return c;
     }
 
-    if (args[0] == "天气" && utf82gbk(args[1]) != args[1])
+    if ((args[0] == "天气" || args[0] == "天氣") && utf82gbk(args[1]) != args[1])
         return weather_cn(args[1]);
     else
         return weather_global(args[1]);

@@ -64,6 +64,7 @@ inline std::map<std::string, commands> commands_str
     {"禁言", commands::禁烟},  //簡體繁體一樣
     {"禁烟", commands::禁烟},
     {"禁菸", commands::禁烟},  //繁體化
+    {"禁煙", commands::禁烟},  //烟字有四种写法
     {"解", commands::解禁},  //簡體繁體一樣
     {"领批", commands::领批},
     {"領批", commands::领批},  //繁體化
