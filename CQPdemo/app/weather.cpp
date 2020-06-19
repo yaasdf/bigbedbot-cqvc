@@ -45,7 +45,7 @@ command weather::msgDispatcher(const char* msg)
     auto args = msg2args(msg, 2);
     if (args.size() < 1)
         return command();
-    if (args.size() == 1 && args[0].length() > 4 && args[0].substr(args[0].length() - 4) == "天气")
+    if (args.size() == 1 && args[0].length() > 4 && (args[0].substr(args[0].length() - 4) == "天气" || args[0].substr(args[0].length() - 4) == "天氣"))
     {
         decltype(args) newargs(2);
         size_t len = args[0].length();
