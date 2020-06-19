@@ -24,15 +24,6 @@
     <ClInclude Include="app\eat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="app\dbconn.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="app\pee.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="app\duel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="app\monopoly.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -51,12 +42,6 @@
     <ClInclude Include="app\event_case.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="app\group.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="utils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="app\weather.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -66,10 +51,55 @@
     <ClInclude Include="app\private\openweather-apikey.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="app\weathercn_api.h">
+    <ClInclude Include="app\common\dbconn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="app\steam_parser.h">
+    <ClInclude Include="app\common\steam_parser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="app\common\weathercn_api.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\time_evt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\simple_str.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\rand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\encoding.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\string_util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\time_util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="app\data\group.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="app\data\user.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="app\case.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="app\gambol.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="app\user_op.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="app\smoke.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cqp_ex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="app\tools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -81,15 +111,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="app\eat.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="app\dbconn.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="app\pee.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="app\duel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="app\monopoly.cpp">
@@ -110,16 +131,49 @@
     <ClCompile Include="app\event_case_def.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="app\group.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="utils.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="app\weather.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="app\steam_parser.cpp">
+    <ClCompile Include="app\common\dbconn.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="app\common\steam_parser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\time_evt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\encoding.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\string_util.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="app\data\group.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="app\data\user.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="app\case.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="app\gambol.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="app\user_op.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="app\smoke.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cqp_ex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="app\tools.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="app\case_def.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

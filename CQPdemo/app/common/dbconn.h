@@ -25,4 +25,7 @@ public:
     void transactionStop();
     void commit(bool restart_transaction = false);
     const char* errmsg();
+public:
+	void timedCommit();
+	void startTimedCommit();
 };

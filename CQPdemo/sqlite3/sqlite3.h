@@ -200,15 +200,15 @@ SQLITE_API const char *sqlite3_compileoption_get(int N);
 **
 ** SQLite can be compiled with or without mutexes.  When
 ** the [SQLITE_THREADSAFE] C preprocessor macro is 1 or 2, mutexes
-** are enabled and SQLite is threadsafe.  When the
+** are gBotEnabled and SQLite is threadsafe.  When the
 ** [SQLITE_THREADSAFE] macro is 0, 
 ** the mutexes are omitted.  Without the mutexes, it is not safe
 ** to use SQLite concurrently from more than one thread.
 **
 ** Enabling mutexes incurs a measurable performance penalty.
 ** So if speed is of utmost importance, it makes sense to disable
-** the mutexes.  But for maximum safety, mutexes should be enabled.
-** ^The default behavior is for mutexes to be enabled.
+** the mutexes.  But for maximum safety, mutexes should be gBotEnabled.
+** ^The default behavior is for mutexes to be gBotEnabled.
 **
 ** This interface can be used by an application to make sure that the
 ** version of SQLite that it is linking against was compiled with
@@ -216,7 +216,7 @@ SQLITE_API const char *sqlite3_compileoption_get(int N);
 **
 ** This interface only reports on the compile-time mutex setting
 ** of the [SQLITE_THREADSAFE] flag.  If SQLite is compiled with
-** SQLITE_THREADSAFE=1 or =2 then mutexes are enabled by default but
+** SQLITE_THREADSAFE=1 or =2 then mutexes are gBotEnabled by default but
 ** can be fully or partially disabled using a call to [sqlite3_config()]
 ** with the verbs [SQLITE_CONFIG_SINGLETHREAD], [SQLITE_CONFIG_MULTITHREAD],
 ** or [SQLITE_CONFIG_SERIALIZED].  ^(The return value of the
@@ -464,7 +464,7 @@ SQLITE_API int sqlite3_exec(
 ** address this, newer versions of SQLite (version 3.3.8 [dateof:3.3.8]
 ** and later) include
 ** support for additional result codes that provide more detailed information
-** about errors. These [extended result codes] are enabled or disabled
+** about errors. These [extended result codes] are gBotEnabled or disabled
 ** on a per database connection basis using the
 ** [sqlite3_extended_result_codes()] API.  Or, the extended code for
 ** the most recent error can be obtained using
@@ -1009,7 +1009,7 @@ struct sqlite3_io_methods {
 ** This file control is used by some VFS activity tracing [shims].
 ** The argument is a zero-terminated string.  Higher layers in the
 ** SQLite stack may generate instances of this file control if
-** the [SQLITE_USE_FCNTL_TRACE] compile-time option is enabled.
+** the [SQLITE_USE_FCNTL_TRACE] compile-time option is gBotEnabled.
 **
 ** <li>[[SQLITE_FCNTL_HAS_MOVED]]
 ** The [SQLITE_FCNTL_HAS_MOVED] file control interprets its argument as a
@@ -1675,7 +1675,7 @@ struct sqlite3_mem_methods {
 ** mutexing on [database connection] and [prepared statement] objects.
 ** The application is responsible for serializing access to
 ** [database connections] and [prepared statements].  But other mutexes
-** are enabled so that SQLite will be safe to use in a multi-threaded
+** are gBotEnabled so that SQLite will be safe to use in a multi-threaded
 ** environment as long as no two threads attempt to use the same
 ** [database connection] at the same time.  ^If SQLite is compiled with
 ** the [SQLITE_THREADSAFE | SQLITE_THREADSAFE=0] compile-time option then
@@ -1738,7 +1738,7 @@ struct sqlite3_mem_methods {
 **   <li> [sqlite3_soft_heap_limit64()]
 **   <li> [sqlite3_status64()]
 **   </ul>)^
-** ^Memory allocation statistics are enabled by default unless SQLite is
+** ^Memory allocation statistics are gBotEnabled by default unless SQLite is
 ** compiled with [SQLITE_DEFAULT_MEMSTATUS]=0 in which case memory
 ** allocation statistics are disabled by default.
 ** </dd>
@@ -1865,9 +1865,9 @@ struct sqlite3_mem_methods {
 **
 ** [[SQLITE_CONFIG_URI]] <dt>SQLITE_CONFIG_URI
 ** <dd>^(The SQLITE_CONFIG_URI option takes a single argument of type int.
-** If non-zero, then URI handling is globally enabled. If the parameter is zero,
+** If non-zero, then URI handling is globally gBotEnabled. If the parameter is zero,
 ** then URI handling is globally disabled.)^ ^If URI handling is globally
-** enabled, all filenames passed to [sqlite3_open()], [sqlite3_open_v2()],
+** gBotEnabled, all filenames passed to [sqlite3_open()], [sqlite3_open_v2()],
 ** [sqlite3_open16()] or
 ** specified as part of [ATTACH] commands are interpreted as URIs, regardless
 ** of whether or not the [SQLITE_OPEN_URI] flag is set when the database
@@ -1886,7 +1886,7 @@ struct sqlite3_mem_methods {
 ** if that compile-time option is omitted.
 ** The ability to disable the use of covering indices for full table scans
 ** is because some incorrectly coded legacy applications might malfunction
-** when the optimization is enabled.  Providing the ability to
+** when the optimization is gBotEnabled.  Providing the ability to
 ** disable the optimization allows the older, buggy application code to work
 ** without change even with newer versions of SQLite.
 **
@@ -1949,7 +1949,7 @@ struct sqlite3_mem_methods {
 ** sorter to that integer.  The default minimum PMA Size is set by the
 ** [SQLITE_SORTER_PMASZ] compile-time option.  New threads are launched
 ** to help with sort operations when multithreaded sorting
-** is enabled (using the [PRAGMA threads] command) and the amount of content
+** is gBotEnabled (using the [PRAGMA threads] command) and the amount of content
 ** to be sorted exceeds the page size times the minimum of the
 ** [PRAGMA cache_size] setting and this value.
 **
@@ -2080,7 +2080,7 @@ struct sqlite3_mem_methods {
 ** The first argument is an integer which is 0 to disable triggers,
 ** positive to enable triggers or negative to leave the setting unchanged.
 ** The second parameter is a pointer to an integer into which
-** is written 0 or 1 to indicate whether triggers are disabled or enabled
+** is written 0 or 1 to indicate whether triggers are disabled or gBotEnabled
 ** following this call.  The second parameter may be a NULL pointer, in
 ** which case the trigger setting is not reported back. </dd>
 **
@@ -2094,7 +2094,7 @@ struct sqlite3_mem_methods {
 ** positive to enable fts3_tokenizer() or negative to leave the setting
 ** unchanged.
 ** The second parameter is a pointer to an integer into which
-** is written 0 or 1 to indicate whether fts3_tokenizer is disabled or enabled
+** is written 0 or 1 to indicate whether fts3_tokenizer is disabled or gBotEnabled
 ** following this call.  The second parameter may be a NULL pointer, in
 ** which case the new setting is not reported back. </dd>
 **
@@ -2106,13 +2106,13 @@ struct sqlite3_mem_methods {
 ** C-API [sqlite3_load_extension()] and the SQL function [load_extension()].
 ** There should be two additional arguments.
 ** When the first argument to this interface is 1, then only the C-API is
-** enabled and the SQL function remains disabled.  If the first argument to
+** gBotEnabled and the SQL function remains disabled.  If the first argument to
 ** this interface is 0, then both the C-API and the SQL function are disabled.
 ** If the first argument is -1, then no changes are made to state of either the
 ** C-API or the SQL function.
 ** The second parameter is a pointer to an integer into which
 ** is written 0 or 1 to indicate whether [sqlite3_load_extension()] interface
-** is disabled or enabled following this call.  The second parameter may
+** is disabled or gBotEnabled following this call.  The second parameter may
 ** be a NULL pointer, in which case the new setting is not reported back.
 ** </dd>
 **
@@ -2151,7 +2151,7 @@ struct sqlite3_mem_methods {
 ** The first argument to this setting is an integer which is 0 to disable 
 ** the QPSG, positive to enable QPSG, or negative to leave the setting
 ** unchanged. The second parameter is a pointer to an integer into which
-** is written 0 or 1 to indicate whether the QPSG is disabled or enabled
+** is written 0 or 1 to indicate whether the QPSG is disabled or gBotEnabled
 ** following this call.
 ** </dd>
 **
@@ -2190,7 +2190,7 @@ struct sqlite3_mem_methods {
 ** [[SQLITE_DBCONFIG_DEFENSIVE]] <dt>SQLITE_DBCONFIG_DEFENSIVE</dt>
 ** <dd>The SQLITE_DBCONFIG_DEFENSIVE option activates or deactivates the
 ** "defensive" flag for a database connection.  When the defensive
-** flag is enabled, language features that allow ordinary SQL to 
+** flag is gBotEnabled, language features that allow ordinary SQL to 
 ** deliberately corrupt the database file are disabled.  The disabled
 ** features include but are not limited to the following:
 ** <ul>
@@ -3211,9 +3211,9 @@ SQLITE_API void sqlite3_progress_handler(sqlite3*, int, int(*)(void*), void*);
 ** previously selected at compile-time or start-time.
 ** ^The [SQLITE_OPEN_SHAREDCACHE] flag causes the database connection to be
 ** eligible to use [shared cache mode], regardless of whether or not shared
-** cache is enabled using [sqlite3_enable_shared_cache()].  ^The
+** cache is gBotEnabled using [sqlite3_enable_shared_cache()].  ^The
 ** [SQLITE_OPEN_PRIVATECACHE] flag causes the database connection to not
-** participate in [shared cache mode] even if it is enabled.
+** participate in [shared cache mode] even if it is gBotEnabled.
 **
 ** ^The fourth parameter to sqlite3_open_v2() is the name of the
 ** [sqlite3_vfs] object that defines the operating system interface that
@@ -3234,11 +3234,11 @@ SQLITE_API void sqlite3_progress_handler(sqlite3*, int, int(*)(void*), void*);
 **
 ** [[URI filenames in sqlite3_open()]] <h3>URI Filenames</h3>
 **
-** ^If [URI filename] interpretation is enabled, and the filename argument
+** ^If [URI filename] interpretation is gBotEnabled, and the filename argument
 ** begins with "file:", then the filename is interpreted as a URI. ^URI
-** filename interpretation is enabled if the [SQLITE_OPEN_URI] flag is
+** filename interpretation is gBotEnabled if the [SQLITE_OPEN_URI] flag is
 ** set in the third argument to sqlite3_open_v2(), or if it has
-** been enabled globally using the [SQLITE_CONFIG_URI] option with the
+** been gBotEnabled globally using the [SQLITE_CONFIG_URI] option with the
 ** [sqlite3_config()] method or by the [SQLITE_USE_URI] compile-time option.
 ** URI filename interpretation is turned off
 ** by default, but future releases of SQLite might enable URI filename
@@ -3346,7 +3346,7 @@ SQLITE_API void sqlite3_progress_handler(sqlite3*, int, int(*)(void*), void*);
 **          in URI filenames.
 ** <tr><td> file:data.db?mode=ro&cache=private <td> 
 **          Open file "data.db" in the current directory for read-only access.
-**          Regardless of whether or not shared-cache mode is enabled by
+**          Regardless of whether or not shared-cache mode is gBotEnabled by
 **          default, use a private cache.
 ** <tr><td> file:/home/fred/data.db?vfs=unix-dotfile <td>
 **          Open file "/home/fred/data.db". Use the special VFS "unix-dotfile"
@@ -3761,7 +3761,7 @@ SQLITE_API int sqlite3_limit(sqlite3*, int id, int newVal);
 ** ^The specific value of WHERE-clause [parameter] might influence the 
 ** choice of query plan if the parameter is the left-hand side of a [LIKE]
 ** or [GLOB] operator or if the parameter is compared to an indexed column
-** and the [SQLITE_ENABLE_STAT3] compile-time option is enabled.
+** and the [SQLITE_ENABLE_STAT3] compile-time option is gBotEnabled.
 ** </li>
 ** </ol>
 **
@@ -5755,7 +5755,7 @@ SQLITE_API int sqlite3_win32_set_directory16(unsigned long type, const void *zVa
 ** zero if the given database connection is or is not in autocommit mode,
 ** respectively.  ^Autocommit mode is on by default.
 ** ^Autocommit mode is disabled by a [BEGIN] statement.
-** ^Autocommit mode is re-enabled by a [COMMIT] or [ROLLBACK].
+** ^Autocommit mode is re-gBotEnabled by a [COMMIT] or [ROLLBACK].
 **
 ** If certain kinds of errors occur on a statement within a multi-statement
 ** transaction (errors including [SQLITE_FULL], [SQLITE_IOERR],
@@ -5936,20 +5936,20 @@ SQLITE_API void *sqlite3_update_hook(
 **
 ** ^(This routine enables or disables the sharing of the database cache
 ** and schema data structures between [database connection | connections]
-** to the same database. Sharing is enabled if the argument is true
+** to the same database. Sharing is gBotEnabled if the argument is true
 ** and disabled if the argument is false.)^
 **
-** ^Cache sharing is enabled and disabled for an entire process.
+** ^Cache sharing is gBotEnabled and disabled for an entire process.
 ** This is a change as of SQLite [version 3.5.0] ([dateof:3.5.0]). 
 ** In prior versions of SQLite,
-** sharing was enabled or disabled for each thread separately.
+** sharing was gBotEnabled or disabled for each thread separately.
 **
 ** ^(The cache sharing mode set by this interface effects all subsequent
 ** calls to [sqlite3_open()], [sqlite3_open_v2()], and [sqlite3_open16()].
 ** Existing database connections continue use the sharing mode
 ** that was in effect at the time they were opened.)^
 **
-** ^(This routine returns [SQLITE_OK] if shared cache was enabled or disabled
+** ^(This routine returns [SQLITE_OK] if shared cache was gBotEnabled or disabled
 ** successfully.  An [error code] is returned otherwise.)^
 **
 ** ^Shared cache is disabled by default. But this might change in
@@ -5958,7 +5958,7 @@ SQLITE_API void *sqlite3_update_hook(
 **
 ** Note: This method is disabled on MacOS X 10.7 and iOS version 5.0
 ** and will always return SQLITE_MISUSE. On those systems, 
-** shared cache mode should be enabled per-database connection via 
+** shared cache mode should be gBotEnabled per-database connection via 
 ** [sqlite3_open_v2()] with [SQLITE_OPEN_SHAREDCACHE].
 **
 ** This interface is threadsafe on processors where writing a
@@ -6173,7 +6173,7 @@ SQLITE_API int sqlite3_table_column_metadata(
 ** obtained from [sqlite3_malloc()]. The calling function
 ** should free this memory by calling [sqlite3_free()].
 **
-** ^Extension loading must be enabled using
+** ^Extension loading must be gBotEnabled using
 ** [sqlite3_enable_load_extension()] or
 ** [sqlite3_db_config](db,[SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION],1,NULL)
 ** prior to calling this API,
@@ -6692,7 +6692,7 @@ typedef struct sqlite3_blob sqlite3_blob;
 **         a TEXT or BLOB value)^,
 **   <li> ^(Column zColumn is part of an index, PRIMARY KEY or UNIQUE 
 **         constraint and the blob is being opened for read/write access)^,
-**   <li> ^([foreign key constraints | Foreign key constraints] are enabled, 
+**   <li> ^([foreign key constraints | Foreign key constraints] are gBotEnabled, 
 **         column zColumn is part of a [child key] definition and the blob is
 **         being opened for read/write access)^.
 ** </ul>
@@ -7667,7 +7667,7 @@ SQLITE_API int sqlite3_db_status(sqlite3*, int op, int *pCur, int *pHiwtr, int r
 ** with the connection - main, temp, and any [ATTACH]-ed databases.)^ 
 ** ^The full amount of memory used by the schemas is reported, even if the
 ** schema memory is shared with other database connections due to
-** [shared cache mode] being enabled.
+** [shared cache mode] being gBotEnabled.
 ** ^The highwater mark associated with SQLITE_DBSTATUS_SCHEMA_USED is always 0.
 **
 ** [[SQLITE_DBSTATUS_STMT_USED]] ^(<dt>SQLITE_DBSTATUS_STMT_USED</dt>
@@ -8435,7 +8435,7 @@ SQLITE_API int sqlite3_strlike(const char *zGlob, const char *zStr, unsigned int
 **
 ** ^The [sqlite3_log()] interface writes a message into the [error log]
 ** established by the [SQLITE_CONFIG_LOG] option to [sqlite3_config()].
-** ^If logging is enabled, the zFormat string and subsequent arguments are
+** ^If logging is gBotEnabled, the zFormat string and subsequent arguments are
 ** used with [sqlite3_snprintf()] to generate the final output string.
 **
 ** The sqlite3_log() interface is intended for use by extensions such as
@@ -8517,7 +8517,7 @@ SQLITE_API void *sqlite3_wal_hook(
 ** [sqlite3_wal_checkpoint_v2|PASSIVE].
 **
 ** ^Every new [database connection] defaults to having the auto-checkpoint
-** enabled with a threshold of 1000 or [SQLITE_DEFAULT_WAL_AUTOCHECKPOINT]
+** gBotEnabled with a threshold of 1000 or [SQLITE_DEFAULT_WAL_AUTOCHECKPOINT]
 ** pages.  The use of this interface
 ** is only necessary if the default setting is found to be suboptimal
 ** for a particular application.
@@ -9562,8 +9562,8 @@ SQLITE_API void sqlite3session_delete(sqlite3_session *pSession);
 ** METHOD: sqlite3_session
 **
 ** Enable or disable the recording of changes by a session object. When
-** enabled, a session object records changes made to the database. When
-** disabled - it does not. A newly created session object is enabled.
+** gBotEnabled, a session object records changes made to the database. When
+** disabled - it does not. A newly created session object is gBotEnabled.
 ** Refer to the documentation for [sqlite3session_changeset()] for further
 ** details regarding how enabling and disabling a session object affects
 ** the eventual changesets.
@@ -9573,7 +9573,7 @@ SQLITE_API void sqlite3session_delete(sqlite3_session *pSession);
 ** no-op, and may be used to query the current state of the session.
 **
 ** The return value indicates the final state of the session object: 0 if 
-** the session is disabled, or 1 if it is enabled.
+** the session is disabled, or 1 if it is gBotEnabled.
 */
 SQLITE_API int sqlite3session_enable(sqlite3_session *pSession, int bEnable);
 
@@ -9613,7 +9613,7 @@ SQLITE_API int sqlite3session_indirect(sqlite3_session *pSession, int bIndirect)
 **
 ** If argument zTab is not NULL, then it is the name of a table to attach
 ** to the session object passed as the first argument. All subsequent changes 
-** made to the table while the session object is enabled will be recorded. See 
+** made to the table while the session object is gBotEnabled will be recorded. See 
 ** documentation for [sqlite3session_changeset()] for further details.
 **
 ** Or, if argument zTab is NULL, then changes are recorded for all tables
@@ -9787,11 +9787,11 @@ SQLITE_API void sqlite3session_table_filter(
 ** it does not accumulate records when rows are inserted, updated or deleted.
 ** This may appear to have some counter-intuitive effects if a single row
 ** is written to more than once during a session. For example, if a row
-** is inserted while a session object is enabled, then later deleted while 
+** is inserted while a session object is gBotEnabled, then later deleted while 
 ** the same session object is disabled, no INSERT record will appear in the
 ** changeset, even though the delete took place while the session was disabled.
 ** Or, if one field of a row is updated while a session is disabled, and 
-** another field of the same row is updated while the session is enabled, the
+** another field of the same row is updated while the session is gBotEnabled, the
 ** resulting changeset will contain an UPDATE change that updates both fields.
 */
 SQLITE_API int sqlite3session_changeset(
@@ -10696,7 +10696,7 @@ SQLITE_API int sqlite3changeset_apply_v2(
 **   primary key.
 **
 ** <dt>SQLITE_CHANGESET_FOREIGN_KEY<dd>
-**   If foreign key handling is enabled, and applying a changeset leaves the
+**   If foreign key handling is gBotEnabled, and applying a changeset leaves the
 **   database in a state containing foreign key violations, the conflict 
 **   handler is invoked with CHANGESET_FOREIGN_KEY as the second argument
 **   exactly once before the changeset is committed. If the conflict handler

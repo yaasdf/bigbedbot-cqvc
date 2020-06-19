@@ -6,60 +6,28 @@
 #include "cqp.h"
 #include "appmain.h" //应用AppID等信息，请正确填写，否则酷Q可能无法加载
 
+#include "app/data/user.h"
+#include "app/data/group.h"
+
+#include "app/case.h"
 #include "app/eat.h"
-#include "app/pee.h"
-#include "app/duel.h"
-#include "app/monopoly.h"
-#include "app/help.h"
 #include "app/event_case.h"
-#include "app/group.h"
+#include "app/gambol.h"
+#include "app/help.h"
+#include "app/monopoly.h"
+#include "app/smoke.h"
+#include "app/tools.h"
+#include "app/user_op.h"
 #include "app/weather.h"
 
+#include "utils/time_evt.h"
+#include "utils/time_util.h"
+
 #include <curl/curl.h>
+#include <thread>
 
 using namespace std;
 int64_t QQME;
-
-#include "app/dbconn.h"
-#include <thread>
-#include <chrono>
-void timedCommit(SQLite& db)
-{
-    db.transactionStart();
-    while (enabled)
-    {
-        using namespace std::chrono_literals;
-        std::this_thread::sleep_for(1min);
-        db.commit(true);
-    }
-    db.transactionStop();
-}
-
-std::map<int, std::map<int, std::vector<std::function<void()>>>> timedEventQueue;
-void timedEventLoop()
-{
-    using namespace std::chrono_literals;
-    int prev_hr = 0, prev_min = 0;
-    while (enabled)
-    {
-        auto t = getLocalTime(TIMEZONE_HR, TIMEZONE_MIN, 0);
-        if (prev_min == t.tm_min)
-        {
-            std::this_thread::sleep_for(30s);
-            continue;
-        }
-
-        for (auto& f : timedEventQueue[t.tm_hour][t.tm_min])
-        {
-            if (f) f();
-        }
-
-        prev_hr = t.tm_hour;
-        prev_min = t.tm_min;
-        std::this_thread::sleep_for(1min);
-    }
-}
-
 
 /* 
 * 返回应用的ApiVer、Appid，打包后将不会调用
@@ -97,17 +65,19 @@ CQEVENT(int32_t, __eventStartup, 0)() {
 */
 CQEVENT(int32_t, __eventExit, 0)() {
     curl_global_cleanup();
-    if (enabled)
+    if (gBotEnabled)
     {
-        for (auto& [group, cfg] : grp::groups)
+        for (auto& [group, cfg] : gambol::groupMap)
         {
             if (cfg.flipcoin_running)
-                duel::flipcoin::roundCancel(group);
+                gambol::flipcoin::roundCancel(group);
             if (cfg.roulette_running)
-                duel::roulette::roundCancel(group);
+				gambol::roulette::roundCancel(group);
         }
-        pee::db.transactionStop();
-        enabled = false;
+        user::db.transactionStop();
+		grp::db.transactionStop();
+		eat::db.transactionStop();
+        gBotEnabled = false;
     }
 	return 0;
 }
@@ -120,63 +90,52 @@ CQEVENT(int32_t, __eventExit, 0)() {
 * 如非必要，不建议在这里加载窗口。（可以添加菜单，让用户手动打开窗口）
 */
 CQEVENT(int32_t, __eventEnable, 0)() {
-	enabled = true;
+	gBotEnabled = true;
     QQME = CQ_getLoginQQ(ac);
+
     eat::foodCreateTable();
 	eat::drinkCreateTable();
     //eat::foodLoadListFromDb();
     eat::updateSteamGameList();
-    pee::peeCreateTable();
-    pee::peeLoadFromDb();
+    user::peeCreateTable();
+    user::peeLoadFromDb();
 	grp::CreateTable();
 	grp::LoadListFromDb();
 
-    for (auto& g : grp::groups)
-        g.second.updateMembers();
+    for (auto [groupid, groupObj] : grp::groups)
+		groupObj.updateMembers();
 
-    timedEventQueue.clear();
-    std::thread(timedEventLoop).detach();
-
-    std::thread(timedCommit, std::ref(eat::db)).detach();
-    std::thread(timedCommit, std::ref(pee::db)).detach();
+	user::db.startTimedCommit();
+	grp::db.startTimedCommit();
+	eat::db.startTimedCommit();
 
     mnp::calc_event_max();
 
-    {
-        pee::daily_refresh_time = time(nullptr) - 60 * 60 * 24; // yesterday
-        pee::daily_refresh_tm_auto = getLocalTime(TIMEZONE_HR, TIMEZONE_MIN);
-    }
 
-    timedEventQueue[0][0].push_back([&]() {
-        for (auto& g : grp::groups)
-            g.second.updateMembers();
-    });
+	startTimedEvent();
+	
+	// 每天刷新群名片
+	for (auto&[group, groupObj] : grp::groups)
+		addTimedEvent([&]() { groupObj.updateMembers(); }, 0, 0);
 
-    timedEventQueue[0][0].push_back([&]() {
-        eat::updateSteamGameList();
-    });
+	// steam game list
+	addTimedEvent([&]() { eat::updateSteamGameList(); }, 0, 0);
 
-    timedEventQueue[pee::NEW_DAY_TIME_HOUR][pee::NEW_DAY_TIME_MIN].push_back([&]() {
-        pee::flushDailyTimep(true);
-    });
+	// 每天刷批
+	user_op::daily_refresh_time = time(nullptr) - 60 * 60 * 24; // yesterday
+	user_op::daily_refresh_tm_auto = getLocalTime(TIMEZONE_HR, TIMEZONE_MIN);
+	addTimedEvent([&]() { user_op::flushDailyTimep(true); }, user_op::NEW_DAY_TIME_HOUR, user_op::NEW_DAY_TIME_MIN);
 
     // 照顾美国人
-    timedEventQueue[4][0].push_back([&]() {
-        event_case::startEvent();
-    });
-    timedEventQueue[5][0].push_back([&]() {
-        event_case::stopEvent();
-    });
+	addTimedEvent([&]() { event_case::startEvent(); }, 4, 0);
+	addTimedEvent([&]() { event_case::stopEvent(); }, 4, 0);
 
-    timedEventQueue[event_case::EVENT_CASE_TIME_HOUR_START][event_case::EVENT_CASE_TIME_MIN_START].push_back([&]() {
-        event_case::startEvent();
-    });
-    timedEventQueue[event_case::EVENT_CASE_TIME_HOUR_END][event_case::EVENT_CASE_TIME_MIN_END].push_back([&]() {
-        event_case::stopEvent();
-    });
+	// 下午6点活动开箱
+	addTimedEvent([&]() { event_case::startEvent(); }, event_case::EVENT_CASE_TIME_HOUR_START, event_case::EVENT_CASE_TIME_MIN_START);
+	addTimedEvent([&]() { event_case::stopEvent(); }, event_case::EVENT_CASE_TIME_HOUR_END, event_case::EVENT_CASE_TIME_MIN_END);
 
     std::string boot_info = help::boot_info();
-    broadcastMsg(boot_info.c_str());
+    broadcastMsg(boot_info.c_str(), grp::Group::MASK_BOOT_ANNOUNCE);
 
 	return 0;
 }
@@ -189,17 +148,19 @@ CQEVENT(int32_t, __eventEnable, 0)() {
 * 无论本应用是否被启用，酷Q关闭前本函数都*不会*被调用。
 */
 CQEVENT(int32_t, __eventDisable, 0)() {
-    if (enabled)
+    if (gBotEnabled)
     {
-        for (auto& [group, cfg] : grp::groups)
+        for (auto& [group, game]: gambol::groupMap)
         {
-            if (cfg.flipcoin_running)
-                duel::flipcoin::roundCancel(group);
-            if (cfg.roulette_running)
-                duel::roulette::roundCancel(group);
+            if (game.flipcoin_running)
+                gambol::flipcoin::roundCancel(group);
+            if (game.roulette_running)
+				gambol::roulette::roundCancel(group);
         }
-        pee::db.transactionStop();
-        enabled = false;
+        user::db.transactionStop();
+		grp::db.transactionStop();
+		eat::db.transactionStop();
+        gBotEnabled = false;
     }
 	return 0;
 }
@@ -213,7 +174,7 @@ CQEVENT(int32_t, __eventPrivateMsg, 24)(int32_t subType, int32_t msgId, int64_t 
 
     if (!strcmp(msg, "接近我") || !strcmp(msg, "解禁我"))
     {
-        CQ_sendPrivateMsg(ac, fromQQ, pee::unsmoke(fromQQ).c_str());
+        CQ_sendPrivateMsg(ac, fromQQ, smoke::selfUnsmoke(fromQQ).c_str());
         return EVENT_BLOCK;
     }
 
@@ -231,39 +192,19 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t msgId, int64_t fr
     
     if (time(NULL) <= banTime_me) return EVENT_IGNORE;
 
-    if (!strcmp(msg, "帮助") || !strcmp(msg, "幫助"))
-    {
-        std::string help = help::help();
-        CQ_sendGroupMsg(ac, fromGroup, help.c_str());
-        return EVENT_BLOCK;
-    }
-
-    std::string buf;
 	bool handled = false;
 
-	if (strstr(msg, "!roll") == msg || strstr(msg, "/roll") == msg)
-	{
-		auto query = msg2args(msg);
-		int val = 100;
-		if (query.size() > 1)
-		{
-			val = atoi(query[1].c_str());
-			if (val < 0) val = 100;
-		}
-		CQ_sendGroupMsg(ac, fromGroup, std::to_string(randInt(0, val)).c_str());
-		return EVENT_BLOCK;
-	}
-
 	// 群组命令
-	auto b = grp::msgDispatcher(msg);
-	if (b.func)
+	auto f = grp::msgDispatcher(msg);
+	if (f.func)
 	{
+		std::string buf;
 		if (grp::groups.find(fromGroup) == grp::groups.end())
 		{
 			grp::newGroup(fromGroup);
 		}
 
-		buf = b.func(fromGroup, fromQQ, b.args, msg);
+		buf = f.func(fromGroup, fromQQ, f.args, msg);
 		if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
 		handled = true;
 	}
@@ -275,25 +216,49 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t msgId, int64_t fr
 	auto& gr = grp::groups[fromGroup];
 	using namespace grp;
 
+	// 用户指令
+	if (true)
+	{
+		auto f = user_op::msgDispatcher(msg);
+		if (f.func)
+		{
+			std::string buf = f.func(fromGroup, fromQQ, f.args, msg);
+			if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
+			handled = true;
+		}
+	}
+
+	// tools
+	if (true)
+	{
+		auto f = tools::msgDispatcher(msg);
+		if (f.func)
+		{
+			std::string buf = f.func(fromGroup, fromQQ, f.args, msg);
+			if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
+			handled = true;
+		}
+	}
+
     // 吃什么
 	if (gr.getFlag(Group::MASK_EAT))
 	{
-		auto c = eat::msgDispatcher(msg);
-		if (c.func)
+		auto f = eat::msgDispatcher(msg);
+		if (f.func)
 		{
-			buf = c.func(fromGroup, fromQQ, c.args, msg);
+			std::string buf = f.func(fromGroup, fromQQ, f.args, msg);
 			if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
 			handled = true;
 		}
 	}
 
     // 开箱
-	if (gr.getFlag(Group::MASK_MONOPOLY))
+	if (gr.getFlag(Group::MASK_CASE))
 	{
-		auto d = pee::msgDispatcher(msg);
-		if (d.func)
+		auto f = opencase::msgDispatcher(msg);
+		if (f.func)
 		{
-			buf = d.func(fromGroup, fromQQ, d.args, msg);
+			std::string buf = f.func(fromGroup, fromQQ, f.args, msg);
 			if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
 			handled = true;
 		}
@@ -302,22 +267,22 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t msgId, int64_t fr
     // 禁烟跌坑
 	if (gr.getFlag(Group::MASK_SMOKE))
 	{
-		auto e = pee::smokeIndicator(msg);
-		if (e.func)
+		auto f = smoke::msgDispatcher(msg);
+		if (f.func)
 		{
-			buf = e.func(fromGroup, fromQQ, e.args, msg);
+			std::string buf = f.func(fromGroup, fromQQ, f.args, msg);
 			if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
 			handled = true;
 		}
 	}
 
     // 
-	if (gr.getFlag(Group::MASK_ROULETTE))
+	if (gr.getFlag(Group::MASK_GAMBOL))
 	{
-		auto f = duel::msgDispatcher(msg);
+		auto f = gambol::msgDispatcher(msg);
 		if (f.func)
 		{
-			buf = f.func(fromGroup, fromQQ, f.args, msg);
+			std::string buf = f.func(fromGroup, fromQQ, f.args, msg);
 			if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
 			handled = true;
 		}
@@ -326,50 +291,66 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t msgId, int64_t fr
     // fate
 	if (gr.getFlag(Group::MASK_MONOPOLY))
 	{
-		auto g = mnp::msgDispatcher(msg);
-		if (g.func)
+		auto f = mnp::msgDispatcher(msg);
+		if (f.func)
 		{
-			buf = g.func(fromGroup, fromQQ, g.args, msg);
+			std::string buf = f.func(fromGroup, fromQQ, f.args, msg);
 			if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
 			handled = true;
 		}
 	}
 
     // event_case
-	if (gr.getFlag(Group::MASK_MONOPOLY))
+	if (gr.getFlag(Group::MASK_EVENT_CASE))
 	{
-		auto h = event_case::msgDispatcher(msg);
-		if (h.func)
+		auto f = event_case::msgDispatcher(msg);
+		if (f.func)
 		{
-			buf = h.func(fromGroup, fromQQ, h.args, msg);
+			std::string buf = f.func(fromGroup, fromQQ, f.args, msg);
 			if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
 			handled = true;
 		}
 	}
 
-    // event_case
-    auto i = weather::msgDispatcher(msg);
-    if (i.func)
-    {
-        buf = i.func(fromGroup, fromQQ, i.args, msg);
-        if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
-		handled = true;
-    }
+    // weather
+	if (true)
+	{
+		auto f = weather::msgDispatcher(msg);
+		if (f.func)
+		{
+			std::string buf = f.func(fromGroup, fromQQ, f.args, msg);
+			if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
+			handled = true;
+		}
+	}
+
+	// help
+	if (true)
+	{
+		auto f = help::msgDispatcher(msg);
+		if (f.func)
+		{
+			std::string buf = f.func(fromGroup, fromQQ, f.args, msg);
+			if (!buf.empty()) CQ_sendGroupMsg(ac, fromGroup, buf.c_str());
+			handled = true;
+		}
+	}
 
     // update smoke status 
     if (fromQQ != QQME && fromQQ != 10000 && fromQQ != 1000000)
     {
-        pee::prevUser[fromGroup] = fromQQ;
-        if (pee::smokeGroups.find(fromQQ) != pee::smokeGroups.end())
+        gr.last_talk_member = fromQQ;
+        if (smoke::smokeTimeInGroups.find(fromQQ) != smoke::smokeTimeInGroups.end())
         {
             time_t t = time(nullptr);
             std::list<int64_t> expired;
-            for (auto& g : pee::smokeGroups[fromQQ])
+            for (auto& g : smoke::smokeTimeInGroups[fromQQ])
                 if (t > g.second) expired.push_back(g.first);
             for (auto& g : expired)
-                pee::smokeGroups.erase(g);
+				smoke::smokeTimeInGroups.erase(g);
         }
     }
+
     return handled ? EVENT_BLOCK : EVENT_IGNORE;
 	//return EVENT_BLOCK; //关于返回值说明, 见“_eventPrivateMsg”函数
 }
@@ -461,14 +442,14 @@ CQEVENT(int32_t, __eventRequest_AddGroup, 32)(int32_t subType, int32_t sendTime,
 * 菜单，可在 .json 文件中设置菜单数目、函数名
 * 如果不使用菜单，请在 .json 及此处删除无用菜单
 */
-CQEVENT(int32_t, __menuA, 0)() {
-    pee::flushDailyTimep();
+CQEVENT(int32_t, __flushDailyP, 0)() {
+    user_op::flushDailyTimep();
 	return 0;
 }
 
-CQEVENT(int32_t, __menuB, 0)() {
+CQEVENT(int32_t, __unsmokeAll, 0)() {
     time_t t = time(nullptr);
-    for (auto& c : pee::smokeGroups)
+    for (auto& c : smoke::smokeTimeInGroups)
         for (auto& g : c.second)
             if (t < g.second)
                 CQ_setGroupBan(ac, g.first, c.first, 0);
@@ -476,154 +457,8 @@ CQEVENT(int32_t, __menuB, 0)() {
 }
 
 
-GroupMemberInfo::GroupMemberInfo(const char* base64_decoded)
-{
-    size_t offset = 0;
-    int16_t len = 0;
-
-    group = ntohll(*(uint64_t*)(&base64_decoded[offset]));
-    offset += 8;
-
-    qqid = ntohll(*(uint64_t*)(&base64_decoded[offset]));
-    offset += 8;
-
-    len = ntohs(*(uint16_t*)(&base64_decoded[offset]));
-    offset += 2;
-    nick = simple_str(len, &base64_decoded[offset]);
-    offset += len;
-
-    len = ntohs(*(uint16_t*)(&base64_decoded[offset]));
-    offset += 2;
-    card = simple_str(len, &base64_decoded[offset]);
-    offset += len;
-
-    gender = ntohl(*(uint32_t*)(&base64_decoded[offset]));
-    offset += 4;
-
-    age = ntohl(*(uint32_t*)(&base64_decoded[offset]));
-    offset += 4;
-
-    len = ntohs(*(uint16_t*)(&base64_decoded[offset]));
-    offset += 2;
-    area = simple_str(len, &base64_decoded[offset]);
-    offset += len;
-
-    joinTime = ntohl(*(uint32_t*)(&base64_decoded[offset]));
-    offset += 4;
-
-    speakTime = ntohl(*(uint32_t*)(&base64_decoded[offset]));
-    offset += 4;
-
-    len = ntohs(*(uint16_t*)(&base64_decoded[offset]));
-    offset += 2;
-    level = simple_str(len, &base64_decoded[offset]);
-    offset += len;
-
-    permission = ntohl(*(uint32_t*)(&base64_decoded[offset]));
-    offset += 4;
-
-    dummy1 = ntohl(*(uint32_t*)(&base64_decoded[offset]));
-    offset += 4;
-
-    len = ntohs(*(uint16_t*)(&base64_decoded[offset]));
-    offset += 2;
-    title = simple_str(len, &base64_decoded[offset]);
-    offset += len;
-
-    titleExpireTime = ntohl(*(uint32_t*)(&base64_decoded[offset]));
-    offset += 4;
-
-    canModifyCard = ntohl(*(uint32_t*)(&base64_decoded[offset]));
-    offset += 4;
+CQEVENT(int32_t, __updateSteamGameList, 0)() {
+	eat::updateSteamGameList();
+	return 0;
 }
 
-std::string getCardFromGroupInfoV2(const char* base64_decoded)
-{
-    /*
-    size_t nick_offset = 8 + 8;
-    size_t nick_len = (base64_decoded[nick_offset] << 8) + base64_decoded[nick_offset + 1];
-    size_t card_offset = nick_offset + 2 + nick_len;
-    size_t card_len = (base64_decoded[card_offset] << 8) + base64_decoded[card_offset + 1];
-    if (card_len == 0)
-        return std::string(&base64_decoded[nick_offset+2], nick_len);
-    else
-        return std::string(&base64_decoded[card_offset+2], card_len);
-        */
-    return GroupMemberInfo(base64_decoded).card;
-}
-
-int getPermissionFromGroupInfoV2(const char* base64_decoded)
-{
-    /*
-    size_t nick_offset = 8 + 8;
-    size_t nick_len = (base64_decoded[nick_offset] << 8) + base64_decoded[nick_offset + 1];
-    size_t card_offset = nick_offset + 2 + nick_len;
-    size_t card_len = (base64_decoded[card_offset] << 8) + base64_decoded[card_offset + 1];
-    size_t area_offset = card_offset + 2 + card_len + 4 + 4;
-    size_t area_len = (base64_decoded[area_offset] << 8) + base64_decoded[area_offset + 1];
-    size_t glvl_offset = area_offset + 2 + area_len + 4 + 4;
-    size_t glvl_len = (base64_decoded[glvl_offset] << 8) + base64_decoded[glvl_offset + 1];
-    size_t perm_offset = glvl_offset + 2 + glvl_len;
-    return (base64_decoded[perm_offset + 0] << (8 * 3)) +
-           (base64_decoded[perm_offset + 1] << (8 * 2)) +
-           (base64_decoded[perm_offset + 2] << (8 * 1)) +
-           (base64_decoded[perm_offset + 3]);
-           */
-    return GroupMemberInfo(base64_decoded).permission;
-}
-
-#include "cpp-base64/base64.h"
-std::string getCard(int64_t group, int64_t qq)
-{
-    if (grp::groups.find(group) != grp::groups.end())
-    {
-        if (grp::groups[group].haveMember(qq))
-            return grp::groups[group].members[qq].card.length() != 0 ?
-                grp::groups[group].members[qq].card : grp::groups[group].members[qq].nick;
-        else
-            return CQ_At(qq);
-    }
-    else
-    {
-        std::string qqname;
-        const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, qq, FALSE);
-        if (cqinfo && strlen(cqinfo) > 0)
-        {
-            std::string decoded = base64_decode(std::string(cqinfo));
-            if (!decoded.empty())
-            {
-                qqname = getCardFromGroupInfoV2(decoded.c_str());
-            }
-        }
-        if (qqname.empty()) qqname = CQ_At(qq);
-        return qqname;
-    }
-}
-
-bool isGroupManager(int64_t group, int64_t qq)
-{
-	const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, qq, TRUE);
-	if (cqinfo && strlen(cqinfo) > 0)
-	{
-		std::string decoded = base64_decode(std::string(cqinfo));
-		if (!decoded.empty())
-		{
-			return (getPermissionFromGroupInfoV2(decoded.c_str()) >= 2);
-		}
-	}
-	return false;
-}
-
-bool isGroupOwner(int64_t group, int64_t qq)
-{
-	const char* cqinfo = CQ_getGroupMemberInfoV2(ac, group, qq, TRUE);
-	if (cqinfo && strlen(cqinfo) > 0)
-	{
-		std::string decoded = base64_decode(std::string(cqinfo));
-		if (!decoded.empty())
-		{
-			return (getPermissionFromGroupInfoV2(decoded.c_str()) >= 3);
-		}
-	}
-	return false;
-}

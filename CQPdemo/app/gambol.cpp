@@ -1,18 +1,27 @@
-#include "duel.h"
+#include "gambol.h"
 #include "cqp.h"
 #include "appmain.h"
 #include <sstream>
 #include <set>
 #include <thread>
-#include "group.h"
+#include "cqp_ex.h"
+#include "utils/string_util.h"
+#include "utils/rand.h"
+#include "data/user.h"
+
 using namespace std::string_literals;
 std::string str_put_fail = "你会不会"s + EMOJI_DOWN + "注？";
 std::string str_nobody = "無人"s + EMOJI_DOWN + "注，取消本局";
 const char* cstr_put_fail = str_put_fail.c_str();
 const char* cstr_nobody = str_nobody.c_str();
 
-namespace duel
+namespace gambol
 {
+using user::plist;
+
+std::map<int64_t, gameData> groupMap;
+
+///////////////////////////////////////////////////////////////////////////////
 
 command msgDispatcher(const char* msg)
 {
@@ -47,7 +56,7 @@ command msgDispatcher(const char* msg)
     case commands::flipcoin:
         c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw) -> std::string
         {
-            if (pee::plist.find(qq) == pee::plist.end()) return std::string(CQ_At(qq)) + "，你还没有开通菠菜";
+            if (user::plist.find(qq) == user::plist.end()) return std::string(CQ_At(qq)) + "，你还没有开通菠菜";
 
             flipcoin::roundStart(group);
             if (args.size() > 2)
@@ -69,7 +78,7 @@ command msgDispatcher(const char* msg)
     case commands::正:
         c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw) -> std::string
         {
-            if (pee::plist.find(qq) == pee::plist.end()) return std::string(CQ_At(qq)) + "，你还没有开通菠菜";
+            if (user::plist.find(qq) == user::plist.end()) return std::string(CQ_At(qq)) + "，你还没有开通菠菜";
 
             if (args.size() > 1)
             {
@@ -90,7 +99,7 @@ command msgDispatcher(const char* msg)
     case commands::反:
         c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw) -> std::string
         {
-            if (pee::plist.find(qq) == pee::plist.end()) return std::string(CQ_At(qq)) + "，你还没有开通菠菜";
+            if (user::plist.find(qq) == user::plist.end()) return std::string(CQ_At(qq)) + "，你还没有开通菠菜";
 
             if (args.size() > 1)
             {
@@ -110,10 +119,10 @@ command msgDispatcher(const char* msg)
         break;
 
 
-    case commands::roulette:
+    case commands::开始摇号:
         c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw) -> std::string
         {
-            if (pee::plist.find(qq) == pee::plist.end()) return std::string(CQ_At(qq)) + "，你还没有开通菠菜";
+            if (user::plist.find(qq) == user::plist.end()) return std::string(CQ_At(qq)) + "，你还没有开通菠菜";
 
             roulette::roundStart(group);
             if (args.size() > 2)
@@ -136,7 +145,7 @@ command msgDispatcher(const char* msg)
     case commands::摇号:
         c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw) -> std::string
         {
-            if (pee::plist.find(qq) == pee::plist.end()) return std::string(CQ_At(qq)) + "，你还没有开通菠菜";
+            if (user::plist.find(qq) == user::plist.end()) return std::string(CQ_At(qq)) + "，你还没有开通菠菜";
 
             if (args.size() > 2)
             {
@@ -169,17 +178,17 @@ namespace flipcoin
 
 void roundStart(int64_t group)
 {
-    if (grp::groups[group].flipcoin_running)
+    if (groupMap[group].flipcoin_running)
     {
         CQ_sendGroupMsg(ac, group, "There is already a game running at this group.");
         return;
     }
 
     CQ_sendGroupMsg(ac, group, "新一轮的翻批开始了，请群员踊跃参加");
-    grp::groups[group].flipcoin_running = true;
-    grp::groups[group].flipcoin_game = {};
+	groupMap[group].flipcoin_running = true;
+	groupMap[group].flipcoin = {};
 
-    grp::groups[group].flipcoin_game.startTime = time(nullptr);
+	groupMap[group].flipcoin.startTime = time(nullptr);
     std::thread([=]() {
         using namespace std::chrono_literals;
 
@@ -208,14 +217,14 @@ void roundStart(int64_t group)
 
 void roundAnnounce(int64_t group)
 {
-    if (!grp::groups[group].flipcoin_running)
+    if (groupMap[group].flipcoin_running)
     {
         CQ_sendGroupMsg(ac, group, "No flipcoin round is running at this group.");
         return;
     }
 
     std::stringstream ss;
-    const auto& r = grp::groups[group].flipcoin_game;
+    const auto& r = groupMap[group].flipcoin;
     ss << "本轮翻批" << EMOJI_DOWN << "注时间还剩" << r.startTime + 60 - time(nullptr) << "秒，当前" << EMOJI_DOWN << "注情况：\n";
 
     ss << "总计" << r.total << "个批，正面" << r.front << "个，反面" << r.back << "个";
@@ -243,13 +252,13 @@ void roundAnnounce(int64_t group)
 
 void roundEnd(int64_t group)
 {
-    if (!grp::groups[group].flipcoin_running)
+    if (groupMap[group].flipcoin_running)
     {
         CQ_sendGroupMsg(ac, group, "No flipcoin round is running at this group.");
         return;
     }
 
-    const auto& r = grp::groups[group].flipcoin_game;
+    const auto& r = groupMap[group].flipcoin;
     if (r.front == 0 || r.back == 0)
     {
         CQ_sendGroupMsg(ac, group, cstr_nobody);
@@ -290,49 +299,47 @@ void roundEnd(int64_t group)
         ss << r.total << "个批么得了";
     CQ_sendGroupMsg(ac, group, ss.str().c_str());
 
-    pee::plist[winner].currency += r.total;
-    modifyCurrency(winner, pee::plist[winner].currency);
-    grp::groups[group].flipcoin_running = false;
+	user::plist[winner].modifyCurrency(+r.total);
+    groupMap[group].flipcoin_running = false;
 }
 
 void roundCancel(int64_t group)
 {
-    if (!grp::groups[group].flipcoin_running)
+    if (groupMap[group].flipcoin_running)
         return;
 
-    for (const auto& [qq, stat] : grp::groups[group].flipcoin_game.pee_per_player)
+    for (const auto& [qq, stat] : groupMap[group].flipcoin.pee_per_player)
     {
-        pee::plist[qq].currency += stat.front;
-        pee::plist[qq].currency += stat.back;
-        modifyCurrency(qq, pee::plist[qq].currency);
+        if (stat.front) user::plist[qq].modifyCurrency(+stat.front);
+		if (stat.back)  user::plist[qq].modifyCurrency(+stat.back);
     }
 
-    grp::groups[group].flipcoin_running = false;
+    groupMap[group].flipcoin_running = false;
     CQ_sendGroupMsg(ac, group, "批不翻了，返还所有批");
 }
 
 void put(int64_t group, int64_t qq, bet bet)
 {
-    if (!grp::groups[group].flipcoin_running)
+    if (groupMap[group].flipcoin_running)
     {
         CQ_sendGroupMsg(ac, group, "本群么得开盘啊");
         return;
     }
 
-    if (bet.front <= 0 && bet.back <= 0)
+    if (bet.front + bet.back <= 0)
     {
         CQ_sendGroupMsg(ac, group, "你就是负批怪？");
         return;
     }
 
-    if (pee::plist[qq].currency < bet.front + bet.back)
+    if (user::plist[qq].getCurrency() < bet.front + bet.back)
     {
         std::string s = CQ_At(qq) + "，你的余额不足";
         CQ_sendGroupMsg(ac, group, s.c_str());
         return;
     }
 
-    auto& round = grp::groups[group].flipcoin_game;
+    auto& round = groupMap[group].flipcoin;
     auto& player = round.pee_per_player[qq];
     player.front += bet.front;
     player.back += bet.back;
@@ -341,8 +348,7 @@ void put(int64_t group, int64_t qq, bet bet)
     round.back += bet.back;
     round.total += bet.front + bet.back;
 
-    pee::plist[qq].currency -= bet.front + bet.back;
-    modifyCurrency(qq, pee::plist[qq].currency);
+	user::plist[qq].modifyCurrency(-(bet.front + bet.back));
 
     std::stringstream ss;
     if (bet.front)
@@ -370,17 +376,16 @@ namespace roulette
 
 void roundStart(int64_t group)
 {
-    if (grp::groups[group].roulette_running)
+    if (groupMap[group].roulette_running)
     {
         CQ_sendGroupMsg(ac, group, "There is already a game running at this group.");
         return;
     }
 
     CQ_sendGroupMsg(ac, group, "新一轮的摇号开始了，请群员踊跃参加");
-    grp::groups[group].roulette_running = true;
-    grp::groups[group].roulette_game = {};
+	groupMap[group].roulette = {};
 
-    grp::groups[group].roulette_game.startTime = time(nullptr);
+    groupMap[group].roulette.startTime = time(nullptr);
     std::thread([=]() {
         using namespace std::chrono_literals;
 
@@ -409,14 +414,14 @@ void roundStart(int64_t group)
 
 void roundAnnounce(int64_t group)
 {
-    if (!grp::groups[group].roulette_running)
+    if (groupMap[group].roulette_running)
     {
         CQ_sendGroupMsg(ac, group, "No roulette round is running at this group.");
         return;
     }
 
     std::stringstream ss;
-    const auto& r = grp::groups[group].roulette_game;
+    const auto& r = groupMap[group].roulette;
     ss << "本轮摇号时间还剩" << r.startTime + 60 - time(nullptr) << "秒，当前" << EMOJI_DOWN << "注情况：\n";
 
     ss << "总计" << r.total << "个批";
@@ -443,13 +448,13 @@ void roundAnnounce(int64_t group)
 
 void roundEnd(int64_t group)
 {
-    if (!grp::groups[group].roulette_running)
+    if (groupMap[group].roulette_running)
     {
         CQ_sendGroupMsg(ac, group, "No roulette round is running at this group.");
         return;
     }
 
-    const auto& r = grp::groups[group].roulette_game;
+    const auto& r = groupMap[group].roulette;
     if (r.total == 0)
     {
         CQ_sendGroupMsg(ac, group, cstr_nobody);
@@ -484,9 +489,8 @@ void roundEnd(int64_t group)
         if (reward_tmp)
         {
             CQ_addLog(ac, CQLOG_DEBUG, "duel", ("reward: "s + std::to_string(qq) + " " + std::to_string(reward_tmp)).c_str());
+			plist[qq].modifyCurrency(reward_tmp);
             reward[qq] = reward_tmp;
-            pee::plist[qq].currency += reward[qq];
-            modifyCurrency(qq, pee::plist[qq].currency);
         }
     }
 
@@ -506,28 +510,29 @@ void roundEnd(int64_t group)
     else
         ss << "\n" << EMOJI_NONE;
     CQ_sendGroupMsg(ac, group, ss.str().c_str());
-    grp::groups[group].roulette_running = false;
+    groupMap[group].roulette_running = false;
 }
 
 void roundCancel(int64_t group)
 {
-    if (!grp::groups[group].roulette_running)
+    if (groupMap[group].roulette_running)
         return;
 
-    for (const auto& [qq, stat] : grp::groups[group].roulette_game.pee_per_player)
+    for (const auto& [qq, stat] : groupMap[group].roulette.pee_per_player)
     {
+		int64_t total = 0;
         for (const auto& a : stat.amount)
-            pee::plist[qq].currency += a;
-        modifyCurrency(qq, pee::plist[qq].currency);
+            total += a;
+		plist[qq].modifyCurrency(+total);
     }
 
-    grp::groups[group].roulette_running = false;
+    groupMap[group].roulette_running = false;
     CQ_sendGroupMsg(ac, group, "号不摇了，返还所有批");
 }
 
 void put(int64_t group, int64_t qq, grid g, int64_t amount)
 {
-    if (!grp::groups[group].roulette_running)
+    if (groupMap[group].roulette_running)
     {
         CQ_sendGroupMsg(ac, group, "本群么得开盘啊");
         return;
@@ -539,22 +544,21 @@ void put(int64_t group, int64_t qq, grid g, int64_t amount)
         return;
     }
 
-    if (pee::plist[qq].currency < amount)
+    if (user::plist[qq].getCurrency() < amount)
     {
         std::string s = CQ_At(qq) + "，你的余额不足";
         CQ_sendGroupMsg(ac, group, s.c_str());
         return;
     }
 
-    auto& round = grp::groups[group].roulette_game;
+    auto& round = groupMap[group].roulette;
     auto& player = round.pee_per_player[qq];
     player.amount[g] += amount;
 
     round.amount[g] += amount;
     round.total += amount;
 
-    pee::plist[qq].currency -= amount;
-    modifyCurrency(qq, pee::plist[qq].currency);
+	plist[qq].modifyCurrency(-amount);
 
     std::stringstream ss;
     if (player.amount[g] == amount)

@@ -101,38 +101,54 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="appmain.h" />
-    <ClInclude Include="app\dbconn.h" />
-    <ClInclude Include="app\duel.h" />
+    <ClInclude Include="app\tools.h" />
+    <ClInclude Include="cqp_ex.h" />
+    <ClInclude Include="app\case.h" />
+    <ClInclude Include="app\common\dbconn.h" />
+    <ClInclude Include="app\gambol.h" />
     <ClInclude Include="app\eat.h" />
     <ClInclude Include="app\event_case.h" />
-    <ClInclude Include="app\group.h" />
+    <ClInclude Include="app\data\group.h" />
+    <ClInclude Include="app\smoke.h" />
     <ClInclude Include="app\help.h" />
     <ClInclude Include="app\monopoly.h" />
-    <ClInclude Include="app\pee.h" />
+    <ClInclude Include="app\data\user.h" />
     <ClInclude Include="app\private\openweather-apikey.h" />
     <ClInclude Include="app\private\qqid.h" />
     <ClInclude Include="app\private\seniverse-apikey.h" />
-    <ClInclude Include="app\steam_parser.h" />
+    <ClInclude Include="app\common\steam_parser.h" />
+    <ClInclude Include="app\user_op.h" />
     <ClInclude Include="app\weather.h" />
-    <ClInclude Include="app\weathercn_api.h" />
+    <ClInclude Include="app\common\weathercn_api.h" />
     <ClInclude Include="cpp-base64\base64.h" />
     <ClInclude Include="cqp.h" />
     <ClInclude Include="sqlite3\sqlite3.h" />
-    <ClInclude Include="utils.h" />
+    <ClInclude Include="utils\encoding.h" />
+    <ClInclude Include="utils\rand.h" />
+    <ClInclude Include="utils\simple_str.h" />
+    <ClInclude Include="utils\string_util.h" />
+    <ClInclude Include="utils\time_evt.h" />
+    <ClInclude Include="utils\time_util.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="appmain.cpp" />
-    <ClCompile Include="app\dbconn.cpp" />
-    <ClCompile Include="app\duel.cpp" />
+    <ClCompile Include="app\case_def.cpp" />
+    <ClCompile Include="app\tools.cpp" />
+    <ClCompile Include="cqp_ex.cpp" />
+    <ClCompile Include="app\case.cpp" />
+    <ClCompile Include="app\common\dbconn.cpp" />
+    <ClCompile Include="app\gambol.cpp" />
     <ClCompile Include="app\eat.cpp" />
     <ClCompile Include="app\event_case.cpp" />
     <ClCompile Include="app\event_case_def.cpp" />
-    <ClCompile Include="app\group.cpp" />
+    <ClCompile Include="app\data\group.cpp" />
+    <ClCompile Include="app\smoke.cpp" />
     <ClCompile Include="app\help.cpp" />
     <ClCompile Include="app\monopoly.cpp" />
-    <ClCompile Include="app\pee.cpp" />
+    <ClCompile Include="app\data\user.cpp" />
     <ClCompile Include="app\private\qqid.cpp" />
-    <ClCompile Include="app\steam_parser.cpp" />
+    <ClCompile Include="app\common\steam_parser.cpp" />
+    <ClCompile Include="app\user_op.cpp" />
     <ClCompile Include="app\weather.cpp" />
     <ClCompile Include="cpp-base64\base64.cpp" />
     <ClCompile Include="dllmain.cpp">
@@ -143,7 +159,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="utils.cpp" />
+    <ClCompile Include="utils\encoding.cpp" />
+    <ClCompile Include="utils\string_util.cpp" />
+    <ClCompile Include="utils\time_evt.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.json" />

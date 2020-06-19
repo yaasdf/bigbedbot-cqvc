@@ -1,20 +1,18 @@
 #pragma once
-#include <string>
-#include <vector>
-#include <map>
 #include <functional>
-namespace help {
+#include <vector>
+#include <string>
+#include <map>
+
+#include "utils/string_util.h"
+
+namespace tools
+{
 
 enum class commands : size_t {
-	help
-};
+	roll,
 
-inline std::map<std::string, commands> commands_str
-{
-	{"°ïÖú", commands::help},
-	{"ŽÍÖú", commands::help},
 };
-
 typedef std::function<std::string(::int64_t, ::int64_t, std::vector<std::string>&, const char*)> callback;
 //typedef std::string(*callback)(::int64_t, ::int64_t, std::vector<std::string>);
 struct command
@@ -24,12 +22,12 @@ struct command
 	callback func = nullptr;
 };
 
-command msgDispatcher(const char* msg);
+inline std::map<std::string, commands> commands_str
+{
+	{"!roll", commands::roll},
+	{"/roll", commands::roll},
+};
 
 ////////////////////////////////////////////////////////////////////////////////
-
-std::string boot_info();
-
-std::string help();
-
+command msgDispatcher(const char* msg);
 }

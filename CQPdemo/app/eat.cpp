@@ -2,12 +2,15 @@
 #include "cqp.h"
 #include "eat.h"
 #include "appmain.h"
-#include "cpp-base64/base64.h"
 #include "private/qqid.h"
-#include "group.h"
+#include "data/group.h"
 #include <Windows.h>
 #include <curl/curl.h>
-#include "steam_parser.h"
+#include "cpp-base64/base64.h"
+#include "common/steam_parser.h"
+#include "utils/encoding.h"
+#include "utils/string_util.h"
+#include "utils/rand.h"
 
 namespace eat {
 
@@ -66,7 +69,7 @@ void updateSteamGameList()
 			games.games.clear();
 			games = std::move(gamestmp);
 			char msg[128];
-			sprintf(msg, "added %u games", games.games.size());
+			sprintf_s(msg, "added %u games", games.games.size());
 			CQ_addLog(ac, CQLOG_DEBUG, "play", msg);
 			break;
 
@@ -95,7 +98,7 @@ void updateSteamGameList()
     default:
     {
         char msg[128];
-        sprintf(msg, "curl error: %d", ret);
+        sprintf_s(msg, "curl error: %d", ret);
         CQ_addLog(ac, CQLOG_WARNING, "play", msg);
     }
         break;
@@ -391,7 +394,7 @@ command msgDispatcher(const char* msg)
 
 			food f[10];
 			int size = getFood10(f);
-			for (size_t i = 0; i < size; ++i)
+			for (int i = 0; i < size; ++i)
 			{
 				ss << " - " << f[i].to_string(group) << "\n";
 			}
@@ -442,7 +445,7 @@ command msgDispatcher(const char* msg)
 				if (r == "空气") return "空气不能删的";
 				if (r.length() > 30) return "你就是飞天意面神教人？";
 
-				int count = haveFood(r);
+				int64_t count = haveFood(r);
 				if (count)
 				{
 					delFood(r);
@@ -500,7 +503,7 @@ command msgDispatcher(const char* msg)
 			if (r == "空气") return "空气不能删的";
 			if (r.length() > 30) return "你就是飞天意面神教人？";
 
-			int count = haveDrink(r);
+			int64_t count = haveDrink(r);
 			if (count)
 			{
 				delDrink(r);
@@ -514,7 +517,7 @@ command msgDispatcher(const char* msg)
     case commands::菜单:
         c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw) -> std::string
         {
-			int count = haveFood();
+			int64_t count = haveFood();
             if (!count) return "无";
 
 			return "菜单暂时不可用！";

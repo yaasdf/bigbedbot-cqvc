@@ -2,9 +2,10 @@
 #include <string>
 #include <map>
 #include <unordered_set>
-#include "dbconn.h"
-#include "duel.h"
+#include <functional>
+#include "../common/dbconn.h"
 #include "appmain.h"
+#include "cqp_ex.h"
 
 namespace grp
 {
@@ -16,20 +17,19 @@ public:
     int64_t group_id;
 	int64_t flags;
     std::map<int64_t, GroupMemberInfo> members;
+	int64_t last_talk_member;
 
 	static const int64_t MASK_EAT = 1 << 0;
-	static const int64_t MASK_FLIPCOIN = 1 << 1;
-	static const int64_t MASK_ROULETTE = 1 << 2;
+	static const int64_t MASK_GAMBOL = 1 << 1;		// rename from flipcoin
+	//static const int64_t MASK_ROULETTE = 1 << 2;	// merged to flipcoin
 	static const int64_t MASK_MONOPOLY = 1 << 3;
 	static const int64_t MASK_SMOKE = 1 << 4;
+	static const int64_t MASK_CASE = 1 << 5;
+	static const int64_t MASK_EVENT_CASE = 1 << 6;
+	static const int64_t MASK_DAILYP = 1 << 7;
+	static const int64_t MASK_BOOT_ANNOUNCE = 1 << 8;
 	void setFlag(int64_t mask, bool set = true);
 	bool getFlag(int64_t mask);
-
-	bool flipcoin_running = false;
-	duel::flipcoin::game flipcoin_game;
-
-	bool roulette_running = false;
-	duel::roulette::game roulette_game;
 
 public:
     void updateMembers();

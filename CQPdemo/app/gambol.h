@@ -1,15 +1,11 @@
 #pragma once
-#include "pee.h"
 #include <map>
+#include <functional>
 
-namespace duel
+namespace gambol
 {
-
-using pee::db;
-
-using pee::modifyCurrency;
-using pee::modifyBoxCount;
-using pee::modifyDrawTime;
+// gambol (x)
+// gamble (o)
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -21,7 +17,7 @@ enum class commands : size_t {
     flipcoin,
     正,
     反,
-    roulette,
+    开始摇号,
     摇号,
 };
 
@@ -31,8 +27,8 @@ inline std::map<std::string, commands> commands_str
     {"開始翻批", commands::flipcoin},   //繁體化
     {"正", commands::正},  //簡體繁體一樣
     {"反", commands::反},  //簡體繁體一樣
-    {"开始摇号", commands::roulette},
-    {"開始搖號", commands::roulette},  //繁體化
+    {"开始摇号", commands::开始摇号},
+    {"開始搖號", commands::开始摇号},  //繁體化
     {"摇号", commands::摇号},
     {"搖號", commands::摇号},  //繁體化
     {"摇", commands::摇号},
@@ -255,4 +251,15 @@ void roundCancel(int64_t group);
 
 void put(int64_t group, int64_t qq, grid g, int64_t amount);
 }
+
+struct gameData
+{
+	bool flipcoin_running;
+	flipcoin::game flipcoin;
+
+	bool roulette_running;
+	roulette::game roulette;
+};
+extern std::map<int64_t, gameData> groupMap;
+
 }

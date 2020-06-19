@@ -1,5 +1,5 @@
 #include "steam_parser.h"
-#include "utils.h"
+#include "utils/encoding.h"
 
 int steam::SteamAppListParser::parse(char* s)
 {

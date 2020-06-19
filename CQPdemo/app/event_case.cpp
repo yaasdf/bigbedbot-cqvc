@@ -6,8 +6,12 @@ using namespace event_case;
 #include "cqp.h"
 #include "appmain.h"
 
-#include "pee.h"
-#include "group.h"
+#include "utils/rand.h"
+#include "utils/string_util.h"
+#include "utils/time_util.h"
+
+#include "data/user.h"
+#include "data/group.h"
 
 case_pool::case_pool(const types_t& type_b, const levels_t& level_b, const std::vector<case_detail>& cases_b):
     types(type_b), levels(level_b)
@@ -100,12 +104,7 @@ std::string case_pool::caseFullName(const case_detail& c) const
     return ret;
 }
 
-using pee::plist;
-using pee::testStamina;
-using pee::updateStamina;
-using pee::modifyCurrency;
-using pee::modifyKeyCount;
-using pee::modifyDrawTime;
+using user::plist;
 
 command event_case::msgDispatcher(const char* msg)
 {
@@ -123,6 +122,7 @@ command event_case::msgDispatcher(const char* msg)
         c.func = [](::int64_t group, ::int64_t qq, std::vector<std::string> args, std::string raw) -> std::string
         {
             if (plist.find(qq) == plist.end()) return std::string(CQ_At(qq)) + "，你还没有开通菠菜";
+			auto &p = plist[qq];
 
             std::stringstream ss;
 
@@ -132,7 +132,7 @@ command event_case::msgDispatcher(const char* msg)
                 return ss.str();
             }
 
-            auto [enough, stamina, rtime] = testStamina(qq, 1);
+            auto [enough, stamina, rtime] = p.testStamina(1);
             if (!enough)
             {
                 ss << CQ_At(qq) << "，你的体力不足，回满还需"
@@ -141,23 +141,23 @@ command event_case::msgDispatcher(const char* msg)
             }
 
             int cost = 0;
-            if (type >= 0 && type < (int)pool_event.getTypeCount() && plist[qq].currency < pool_event.getTypeCost(type))
+            if (type >= 0 && type < (int)pool_event.getTypeCount() && p.getCurrency() < pool_event.getTypeCost(type))
             {
                 cost = pool_event.getTypeCost(type);
-                if (plist[qq].currency < cost)
+                if (p.getCurrency() < cost)
                 {
                     ss << CQ_At(qq) << "，你的余额不足，需要" << cost << "个批";
                     return ss.str();
                 }
             }
 
-            updateStamina(qq, 1);
-            plist[qq].currency -= pool_event.getTypeCost(type);
             const case_detail& reward = pool_event.draw(type);
             if (reward.worth > 300) ss << "歪哟，" << CQ_At(qq) << "发了，开出了";
             else ss << CQ_At(qq) << "，恭喜你开出了";
             ss << pool_event.casePartName(reward);
-            plist[qq].currency += reward.worth;
+
+			p.modifyStamina(1, true);
+			p.modifyCurrency(+reward.worth - pool_event.getTypeCost(type));
 
             // drop
             if (randReal() < 0.1)
@@ -169,12 +169,10 @@ command event_case::msgDispatcher(const char* msg)
                 ss << "，并获得1个箱子掉落，开出了";
                 int type = randInt(0, pool_drop.getTypeCount() - 1);
                 auto dcase = pool_drop.draw(type);
-                plist[qq].currency += dcase.worth;
+				p.modifyCurrency(+dcase.worth);
                 ss << pool_drop.caseFullName(dcase);
             }
 
-            if (plist[qq].currency < 0) plist[qq].currency = 0;
-            modifyCurrency(qq, plist[qq].currency);
             //modifyBoxCount(qq, ++plist[qq].opened_box_count);
             //ss << "你还有" << stamina << "点体力，";
 

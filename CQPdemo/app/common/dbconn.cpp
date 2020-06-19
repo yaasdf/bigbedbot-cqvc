@@ -1,7 +1,11 @@
-#include "sqlite3/sqlite3.h"
-#include "dbconn.h"
 #include <string>
+#include <thread>
+
+#include "dbconn.h"
+#include "sqlite3/sqlite3.h"
+
 #include "cqp.h"
+#include "appmain.h"
 
 SQLite::SQLite(const char* path, const char* log) { strcpy_s(logGrp, log); sqlite3_open(path, &_db); }
 SQLite::~SQLite() { sqlite3_close(_db); }
@@ -184,4 +188,28 @@ void SQLite::commit(bool restart_transaction)
 {
     transactionStop();
     if (restart_transaction) transactionStart();
+}
+
+void SQLite::timedCommit()
+{
+	while (gBotEnabled)
+	{
+		if (inTransaction)
+		{
+			transactionStop();
+			commit(true);
+			transactionStart();
+		}
+		else
+		{
+
+			commit(false);
+		}
+		sqlite3_sleep(1000 * 60);	// 1min
+	}
+}
+
+void SQLite::startTimedCommit()
+{
+	std::thread(&SQLite::timedCommit, this).detach();
 }

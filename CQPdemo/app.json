@@ -4,10 +4,10 @@
 {
     "ret":1,					// 返回码，固定为1
     "apiver":9,					// Api版本，本SDK为9
-    "name":"enen",	// 应用名称
-    "version":"1.0.0",			// 应用版本
+    "name":"大床小号",	// 应用名称
+    "version":"2.0",			// 应用版本
     "version_id":1,				// 应用顺序版本（每次发布时至少+1）
-    "author":"Example",			// 应用作者
+    "author":"github.com/yaasdf",			// 应用作者
     "description":"fdsafdsa",
     "event":[					// 事件列表，同一事件类型可重复定义（发布前请删除无用事件）
         {
@@ -102,14 +102,18 @@
             "function":"_eventDisable"
         }
     ],
-    "menu":[		// 设置菜单（发布前请删除无用菜单，如果无需设置菜单请全部删除）
+    "menu": [ // 设置菜单（发布前请删除无用菜单，如果无需设置菜单请全部删除）
         {
-            "name":"设置A",			//菜单名称
-            "function":"_menuA"		//菜单对应函数
+            "name": "刷p", //菜单名称
+            "function": "_flushDailyP" //菜单对应函数
         },
         {
-            "name":"设置B",
-            "function":"_menuB"
+            "name": "全体解烟",
+            "function": "_unsmokeAll"
+        },
+        {
+            "name": "更新steam游戏列表",
+            "function": "_updateSteamGameList"
         }
     ],
     "status":[		// 悬浮窗状态（见 com.example.status 样例）

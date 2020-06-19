@@ -5,8 +5,11 @@
 #include <nlohmann/json.hpp>
 
 #include "weather.h"
-#include "../utils.h"
-#include "../cqp.h"
+#include "cqp.h"
+
+#include "utils/string_util.h"
+#include "utils/encoding.h"
+
 using namespace weather;
 
 bool inQuery = false;
@@ -237,11 +240,11 @@ command weather::weather_cn(const std::string& city)
             c.args.push_back(json["data"]["shidu"]);
 
             dbuf = json["data"]["pm25"];
-            sprintf(buf, "%.1f", dbuf);
+            sprintf_s(buf, "%.1f", dbuf);
             c.args.push_back(buf);
 
             dbuf = json["data"]["pm10"];
-            sprintf(buf, "%.1f", dbuf);
+            sprintf_s(buf, "%.1f", dbuf);
             c.args.push_back(buf);
 
             c.args.push_back(utf82gbk(json["data"]["forecast"][0]["type"]));
@@ -249,7 +252,7 @@ command weather::weather_cn(const std::string& city)
             c.args.push_back(utf82gbk(json["data"]["forecast"][0]["high"]));
 
             ibuf = json["data"]["forecast"][0]["aqi"];
-            sprintf(buf, "%d", ibuf);
+            sprintf_s(buf, "%d", ibuf);
             c.args.push_back(buf);
 
             c.c = commands::国内天气;

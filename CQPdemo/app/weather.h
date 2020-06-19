@@ -2,7 +2,7 @@
 
 //#include "private/seniverse-apikey.h"
 #include "private/openweather-apikey.h"
-#include "weathercn_api.h"
+#include "common/weathercn_api.h"
 
 namespace weather
 {

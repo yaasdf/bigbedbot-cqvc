@@ -1,11 +1,7 @@
 #pragma once
-#include "pee.h"
-
-using pee::plist;
-using pee::modifyCurrency;
-using pee::modifyKeyCount;
-using pee::updateStamina;
-using pee::nosmoking;
+#include <map>
+#include <string>
+#include <functional>
 
 namespace mnp
 {

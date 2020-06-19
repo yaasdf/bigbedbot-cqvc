@@ -2,6 +2,7 @@
 #include "cqp.h"
 #include "appmain.h"
 #include "cpp-base64/base64.h"
+#include "utils/string_util.h"
 
 namespace grp
 {
@@ -34,32 +35,15 @@ void Group::updateMembers()
     sprintf_s(buf, "updating members for group %lld", group_id);
     CQ_addLog(ac, CQLOG_INFO, "grp", buf);
 
-    const char* grpbuf = CQ_getGroupMemberList(ac, group_id);
-    CQ_addLog(ac, CQLOG_DEBUG, "grp", grpbuf);
-
-    if (grpbuf == NULL)
-    {
-        members.clear();
-        sprintf_s(buf, "group not found");
-        CQ_addLog(ac, CQLOG_INFO, "grp", buf);
-        return;
-    }
-
-    std::string raw = base64_decode(std::string(grpbuf));
-    int count = ntohl(*((uint32_t*)(raw.c_str())));
-    const char* p = raw.c_str() + sizeof(uint32_t);
-
-    members.clear();
-
-    for (int i = 0; (i < count) && (p < raw.c_str() + raw.length()); ++i)
-    {
-        int member_size = ntohs(*((uint16_t*)(p)));
-        p += sizeof(uint16_t);
-
-        auto m = GroupMemberInfo(p);
-        members[m.qqid] = m;
-        p += member_size;
-    }
+	auto members_tmp = getGroupMemberList(group_id);
+	if (members_tmp.empty())
+	{
+		char buf[64];
+		sprintf_s(buf, "updating members for group %lld error", group_id);
+		CQ_addLog(ac, CQLOG_ERROR, "grp", buf);
+		return;
+	}
+	members = members_tmp;
 
     sprintf_s(buf, "updated %u members", members.size());
     CQ_addLog(ac, CQLOG_INFO, "grp", buf);
@@ -122,7 +106,7 @@ void LoadListFromDb()
 		groups[g.group_id] = g;
     }
     char msg[128];
-    sprintf(msg, "added %u groups", groups.size());
+    sprintf_s(msg, "added %u groups", groups.size());
     CQ_addLog(ac, CQLOG_DEBUG, "grp", msg);
 }
 
@@ -165,25 +149,40 @@ command msgDispatcher(const char* msg)
 					g.setFlag(Group::MASK_EAT);
 					return "本群已开启吃什么";
 				}
-				else if (subcmd == "翻批")
+				else if (subcmd == "翻批" || subcmd == "摇号")
 				{
-					g.setFlag(Group::MASK_FLIPCOIN);
-					return "本群已开启翻批";
-				}
-				else if (subcmd == "摇号")
-				{
-					g.setFlag(Group::MASK_ROULETTE);
-					return "本群已开启摇号";
+					g.setFlag(Group::MASK_GAMBOL);
+					return "本群已开启翻批/摇号";
 				}
 				else if (subcmd == "抽卡")
 				{
 					g.setFlag(Group::MASK_MONOPOLY);
-					return "本群已开启抽卡/开箱";
+					return "本群已开启抽卡";
 				}
 				else if (subcmd == "禁烟")
 				{
 					g.setFlag(Group::MASK_SMOKE);
 					return "本群已开启禁烟";
+				}
+				else if (subcmd == "开箱")
+				{
+					g.setFlag(Group::MASK_CASE);
+					return "本群已开启开箱";
+				}
+				else if (subcmd == "活动开箱")
+				{
+					g.setFlag(Group::MASK_EVENT_CASE);
+					return "本群已开启活动开箱";
+				}
+				else if (subcmd == "每日批池")
+				{
+					g.setFlag(Group::MASK_DAILYP);
+					return "本群已开启每日批池";
+				}
+				else if (subcmd == "启动信息")
+				{
+					g.setFlag(Group::MASK_BOOT_ANNOUNCE);
+					return "本群已开启启动信息";
 				}
 			}
 			return "你开个锤子？";
@@ -203,25 +202,40 @@ command msgDispatcher(const char* msg)
 					g.setFlag(Group::MASK_EAT, false);
 					return "本群已关闭吃什么";
 				}
-				else if (subcmd == "翻批")
+				else if (subcmd == "翻批" || subcmd == "摇号")
 				{
-					g.setFlag(Group::MASK_FLIPCOIN, false);
-					return "本群已关闭翻批";
-				}
-				else if (subcmd == "摇号")
-				{
-					g.setFlag(Group::MASK_ROULETTE, false);
-					return "本群已关闭摇号";
+					g.setFlag(Group::MASK_GAMBOL, false);
+					return "本群已关闭翻批/摇号";
 				}
 				else if (subcmd == "抽卡")
 				{
 					g.setFlag(Group::MASK_MONOPOLY, false);
-					return "本群已关闭抽卡/开箱";
+					return "本群已关闭抽卡";
 				}
 				else if (subcmd == "禁烟")
 				{
 					g.setFlag(Group::MASK_SMOKE, false);
 					return "本群已关闭禁烟";
+				}
+				else if (subcmd == "开箱")
+				{
+					g.setFlag(Group::MASK_CASE, false);
+					return "本群已关闭开箱";
+				}
+				else if (subcmd == "活动开箱")
+				{
+					g.setFlag(Group::MASK_EVENT_CASE, false);
+					return "本群已关闭活动开箱";
+				}
+				else if (subcmd == "每日批池")
+				{
+					g.setFlag(Group::MASK_DAILYP);
+					return "本群已关闭每日批池";
+				}
+				else if (subcmd == "启动信息")
+				{
+					g.setFlag(Group::MASK_BOOT_ANNOUNCE);
+					return "本群已关闭启动信息";
 				}
 			}
 			return "你关个锤子？";
