@@ -102,7 +102,7 @@ CQEVENT(int32_t, __eventEnable, 0)() {
 	grp::CreateTable();
 	grp::LoadListFromDb();
 
-    for (auto [groupid, groupObj] : grp::groups)
+    for (auto& [groupid, groupObj] : grp::groups)
 		groupObj.updateMembers();
 
 	user::db.startTimedCommit();

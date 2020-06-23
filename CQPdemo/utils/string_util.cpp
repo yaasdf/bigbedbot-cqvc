@@ -2,13 +2,15 @@
 #include <sstream>
 
 //////////////////////////////////
-std::vector<std::string> msg2args(const char* msg, int max)
+std::vector<std::string> msg2args(const char* msg)
 {
 	std::vector<std::string> query;
 	if (msg == nullptr) return query;
 	std::stringstream ss(msg);
 	int count = 1;
-	while (ss && count < max)
+
+	// loop
+	while (ss)
 	{
 		std::string s;
 		ss >> s;
@@ -18,6 +20,9 @@ std::vector<std::string> msg2args(const char* msg, int max)
 			++count;
 		}
 	}
+
+	// what is this
+	/*
 	if (!ss.eof())
 	{
 		while (!ss.eof())
@@ -33,6 +38,55 @@ std::vector<std::string> msg2args(const char* msg, int max)
 		ss.getline(buf, sizeof(buf));
 		std::string s(buf);
 		query.push_back(s);
+	}
+	*/
+	return query;
+}
+
+std::vector<std::string> msg2args(const char* msg, int commandLen)
+{
+	if (commandLen == 0) return msg2args(msg);
+
+	std::vector<std::string> query;
+	if (msg == nullptr) return query;
+	std::stringstream ss(msg);
+	int count = 1;
+
+	// split first word
+	if (commandLen > 0)
+	{
+		std::string s;
+		ss >> s;
+		if (!s.empty())
+		{
+			query.push_back(s.substr(0, commandLen));
+			query.push_back(s.substr(commandLen));
+			++count;
+		}
+	}
+	else
+	{
+		commandLen = -commandLen;
+		std::string s;
+		ss >> s;
+		if (!s.empty())
+		{
+			query.push_back(s.substr(commandLen));
+			query.push_back(s.substr(0, commandLen));
+			++count;
+		}
+	}
+
+	// loop
+	while (ss)
+	{
+		std::string s;
+		ss >> s;
+		if (!s.empty())
+		{
+			query.push_back(s);
+			++count;
+		}
 	}
 	return query;
 }

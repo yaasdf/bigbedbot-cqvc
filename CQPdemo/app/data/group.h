@@ -17,7 +17,7 @@ public:
     int64_t group_id;
 	int64_t flags;
     std::map<int64_t, GroupMemberInfo> members;
-	int64_t last_talk_member;
+	int64_t last_talk_member = 0;
 
 	static const int64_t MASK_EAT = 1 << 0;
 	static const int64_t MASK_GAMBOL = 1 << 1;		// rename from flipcoin
