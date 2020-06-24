@@ -44,7 +44,7 @@ pdata::resultStamina pdata::getStamina(bool extra)
 	time_t last = stamina_recovery_time;
 	int stamina = MAX_STAMINA;
 	if (last > t) stamina -= (last - t) / STAMINA_TIME + !!((last - t) % STAMINA_TIME);
-	return { true, stamina, stamina_recovery_time};
+	return { true, stamina, stamina_recovery_time - t};
 }
 
 pdata::resultStamina pdata::modifyStamina(int cost, bool extra)

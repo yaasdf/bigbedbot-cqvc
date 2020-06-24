@@ -45,7 +45,8 @@ std::vector<std::string> msg2args(const char* msg)
 
 std::vector<std::string> msg2args(const char* msg, int commandLen)
 {
-	if (commandLen == 0) return msg2args(msg);
+	if (commandLen == 0 || strnlen(msg, commandLen) < commandLen)
+		return msg2args(msg);
 
 	std::vector<std::string> query;
 	if (msg == nullptr) return query;
