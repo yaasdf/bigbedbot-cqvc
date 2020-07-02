@@ -38,17 +38,14 @@ std::shared_ptr<std::thread> timedEventThread = nullptr;
 
 void startTimedEvent()
 {
-	if (!timedEventThread)
-	{
-		timedEventThread = std::make_shared<std::thread>(timedEventLoop);
-		timedEventThread->detach();
-	}
+	timedThreadRunning = true;
+	timedEventThread = std::make_shared<std::thread>(timedEventLoop);
+	timedEventThread->detach();
 }
 
 void stopTimedEvent()
 {
 	timedThreadRunning = false;
-	timedEventThread = nullptr;
 }
 
 
