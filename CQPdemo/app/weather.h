@@ -12,6 +12,12 @@ enum class commands : size_t {
     全球天气,
     国内天气
 };
+inline std::map<std::string, commands> commands_regex
+{
+    {R"(^weather +(?<city>.+) *$)", commands::全球天气},
+    {R"(^ *(?<city>.+) +weather$)", commands::全球天气},
+    {R"(^ *(?<city>.+)(天气|天氣)$)", commands::国内天气},
+};
 struct command
 {
     commands c = (commands)0;

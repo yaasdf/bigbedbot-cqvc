@@ -10,6 +10,9 @@
 #include "utils/string_util.h"
 #include "utils/encoding.h"
 
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2/pcre2.h>
+
 using namespace weather;
 
 bool inQuery = false;
@@ -42,20 +45,64 @@ std::string success(::int64_t, ::int64_t, std::vector<std::string>& args, const 
 
 command weather::msgDispatcher(const char* msg)
 {
+    command c;
+    //std::vector<std::string> args;
+    std::string city;
+    for (const auto& [regstr, cmd] : commands_regex)
+    {
+        int errcode;
+        size_t erroffset;
+        unsigned char* tableptr;
+        auto* pcre2 = pcre2_compile((PCRE2_SPTR8)regstr.c_str(), PCRE2_ZERO_TERMINATED, PCRE2_CASELESS, &errcode, &erroffset, NULL);
+        pcre2_match_data* mdata = pcre2_match_data_create_from_pattern(pcre2, NULL);
+        int m = pcre2_match(pcre2, (PCRE2_SPTR8)msg, PCRE2_ZERO_TERMINATED, 0, 0, mdata, NULL);
+        if (m > 0)
+        {
+            /*
+            size_t plen = 0;
+            pcre2_pattern_info(pcre2, PCRE2_INFO_CAPTURECOUNT, &plen);
+            for (size_t i = 1; i < plen; ++i)
+            {
+                PCRE2_UCHAR* str;
+                PCRE2_SIZE strlen;
+                if (pcre2_substring_get_bynumber(mdata, i, &str, &strlen) == 0)
+                {
+                    CQ_addLog(ac, CQLOG_DEBUG, "weather", (char*)str);
+                    args.push_back((char*)str);
+                    pcre2_substring_free(str);
+                }
+                else
+                    args.push_back("");
+            }
+            */
+            PCRE2_UCHAR* str = NULL;
+            PCRE2_SIZE strlen;
+            if (pcre2_substring_get_byname(mdata, (PCRE2_SPTR8)"city", &str, &strlen) == 0 && str)
+            {
+                city = std::string((char*)str);
+                switch (cmd)
+                {
+                case commands::全球天气:
+                    c = weather_global(city);
+                    break;
+                case commands::国内天气:
+                    c = weather_cn(city);
+                    break;
+                default:
+                    break;
+                }
+                pcre2_substring_free(str);
+            }
+        }
+        pcre2_match_data_free(mdata);
+    }
+    
     auto args = msg2args(msg, 2);
     if (args.size() < 1)
         return command();
-    if (args.size() == 1 && args[0].length() > 4 && (args[0].substr(args[0].length() - 4) == "天气" || args[0].substr(args[0].length() - 4) == "天氣"))
-    {
-        decltype(args) newargs(2);
-        size_t len = args[0].length();
-        newargs[1] = args[0].substr(0, len - 4);
-        newargs[0] = args[0].substr(len - 4);
-        args = newargs;
-    }
 
-    if ((args[0] != "天气" && args[0] != "天氣") && args[0] != "weather" || args.size() <= 1)
-        return command();
+    auto query = msg2args(msg);
+    if (query.empty()) return command();
 
     if (inQuery)
     {
@@ -69,8 +116,10 @@ command weather::msgDispatcher(const char* msg)
 
     if ((args[0] == "天气" || args[0] == "天氣") && utf82gbk(args[1]) != args[1])
         return weather_cn(args[1]);
-    else
+    else if (args.size() >= 2)
         return weather_global(args[1]);
+
+    return command();
 }
 
 command weather::weather_global(const std::string& city)
